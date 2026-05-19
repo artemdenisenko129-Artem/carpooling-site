@@ -5,7 +5,7 @@ import SearchForm from "../components/SearchForm"
 export const dynamic = "force-dynamic"
 
 const BOT = process.env.NEXT_PUBLIC_BOT_USERNAME || "poputky_bot"
-const CHANNEL = process.env.NEXT_PUBLIC_CHANNEL_USERNAME || "poputky_ua"
+const CHANNEL = process.env.NEXT_PUBLIC_CHANNEL_USERNAME || "poputtky_ua"
 
 async function getAnnouncements(from?: string, to?: string) {
   const client = await clientPromise
@@ -14,17 +14,12 @@ async function getAnnouncements(from?: string, to?: string) {
   if (from && from.trim()) query.searchFrom = { $regex: from.toLowerCase().trim(), $options: "i" }
   if (to && to.trim()) query.searchTo = { $regex: to.toLowerCase().trim(), $options: "i" }
   const items = await db.collection("announcements").find(query).sort({ createdAt: -1 }).limit(40).toArray()
-
   const seen = new Set<string>()
   const unique: any[] = []
   for (const item of items) {
     const key = item.channelMessageId ? "ch:" + item.channelMessageId : "id:" + String(item._id)
-    if (!seen.has(key)) {
-      seen.add(key)
-      unique.push(item)
-    }
+    if (!seen.has(key)) { seen.add(key); unique.push(item) }
   }
-
   return JSON.parse(JSON.stringify(unique.slice(0, 20)))
 }
 
@@ -36,34 +31,82 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ f
   const isFiltered = Boolean(params.from || params.to)
 
   return (
-    <main className="min-h-screen bg-blue-50">
-      <header className="bg-blue-600 text-white p-6 text-center">
-        <h1 className="text-4xl font-bold mb-2">Попутки Україна</h1>
-        <p className="text-blue-100">Знайди попутника або пасажира для поїздки</p>
-        <a href={channelLink} target="_blank" className="inline-block mt-3 text-blue-100 underline hover:text-white text-sm">Наш Telegram-канал: @{CHANNEL}</a>
-      </header>
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-          <Link href="/new" className="block bg-green-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-700">+ Створити на сайті</Link>
-          <a href={botLink} target="_blank" className="block bg-sky-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-sky-600">Опублікувати через бот</a>
+    <main className="min-h-screen text-white">
+      <nav className="border-b border-zinc-800 px-6 py-4 flex justify-between items-center">
+        <Link href="/" className="text-2xl font-bold gradient-text">Попутки UA</Link>
+        <a href={channelLink} target="_blank" className="text-zinc-400 hover:text-cyan-400 text-sm">@{CHANNEL}</a>
+      </nav>
+
+      <section className="px-6 py-20 text-center max-w-4xl mx-auto">
+        <p className="text-cyan-400 text-sm tracking-widest uppercase mb-4">Ексклюзивна спільнота попутників</p>
+        <h1 className="text-5xl sm:text-6xl font-bold mb-6 leading-tight">Преміальні поїздки. Перевірені попутники. <span style={{color: "#FFFFFF"}}>Без турбот.</span></h1>
+        <p className="text-zinc-300 text-lg mb-10 max-w-2xl mx-auto">Сучасна платформа для пошуку та публікації оголошень про спільні поїздки.</p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href="/new" className="gradient-btn px-8 py-4 rounded-xl font-bold transition">Опублікувати на сайті</Link>
+          <a href={botLink} target="_blank" className="border-2 border-cyan-400 text-cyan-400 px-8 py-4 rounded-xl font-bold hover:bg-cyan-400 hover:text-black transition">Через Telegram-бот</a>
         </div>
-        <SearchForm />
-        <h2 className="text-xl font-semibold mb-4 text-gray-700">{isFiltered ? "Знайдено" : "Останні оголошення"} ({announcements.length})</h2>
-        {announcements.length === 0 ? (<div className="bg-white rounded-xl shadow p-8 text-center text-gray-600">Нічого не знайдено за цим маршрутом 😔</div>) : null}
-        {announcements.map((a: any) => (
-          <div key={a._id} className="bg-white rounded-xl shadow p-5 mb-4">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-sm font-semibold text-gray-500">@{a.telegramUsername}</span>
-              <span className={a.role === "driver" ? "text-green-600 font-semibold text-sm" : "text-orange-500 font-semibold text-sm"}>{a.role === "driver" ? "Водій" : "Пасажир"}</span>
+      </section>
+
+      <section className="px-6 py-12 text-center">
+        <div className="max-w-2xl mx-auto">
+          <p className="text-cyan-400 text-sm tracking-widest uppercase mb-2">Start Today</p>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Готовий опублікувати свою поїздку?</h2>
+          <p className="text-zinc-300 mb-8">Створи оголошення за хвилину і знайди попутника вже сьогодні.</p>
+          <Link href="/new" className="inline-block gradient-btn px-10 py-4 rounded-xl font-bold transition">Створити оголошення</Link>
+        </div>
+      </section>
+
+      <section className="px-6 py-16">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-cyan-400 text-sm tracking-widest uppercase mb-2 text-center">Як це працює</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">Знайди попутника за 3 кроки</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-6 backdrop-blur hover:border-cyan-400 transition">
+              <div className="gradient-text text-4xl font-bold mb-2">01</div>
+              <h3 className="text-xl font-bold mb-2">Введи маршрут</h3>
+              <p className="text-zinc-300 text-sm">Вкажи звідки і куди їдеш — система знайде найкращі варіанти.</p>
             </div>
-            <pre className="text-gray-700 text-sm whitespace-pre-wrap font-sans">{a.aiText}</pre>
-            <div className="flex gap-2 mt-3 flex-wrap">
-              <a href={"https://t.me/" + a.telegramUsername} target="_blank" className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-100">Написати в Telegram</a>
-              {a.channelMessageId ? (<a href={"https://t.me/" + CHANNEL + "/" + a.channelMessageId} target="_blank" className="bg-purple-50 text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-100">Відкрити в каналі</a>) : null}
+            <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-6 backdrop-blur hover:border-cyan-400 transition">
+              <div className="gradient-text text-4xl font-bold mb-2">02</div>
+              <h3 className="text-xl font-bold mb-2">Обери попутника</h3>
+              <p className="text-zinc-300 text-sm">Переглянь оголошення водіїв або пасажирів.</p>
+            </div>
+            <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-6 backdrop-blur hover:border-cyan-400 transition">
+              <div className="gradient-text text-4xl font-bold mb-2">03</div>
+              <h3 className="text-xl font-bold mb-2">Звяжись у Telegram</h3>
+              <p className="text-zinc-300 text-sm">Одним кліком напиши в Telegram або відкрий пост у каналі.</p>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-16 max-w-4xl mx-auto">
+        <p className="text-cyan-400 text-sm tracking-widest uppercase mb-2 text-center">Каталог</p>
+        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-10">{isFiltered ? "Результати пошуку" : "Останні оголошення"}</h2>
+        <SearchForm />
+        <h3 className="text-zinc-300 text-sm mb-6 mt-6">Знайдено: {announcements.length}</h3>
+        {announcements.length === 0 ? (<div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-8 text-center text-zinc-300 backdrop-blur">Нічого не знайдено за цим маршрутом</div>) : null}
+        <div className="grid grid-cols-1 gap-4">
+          {announcements.map((a: any) => (
+            <div key={a._id} className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-6 backdrop-blur hover:border-cyan-400 transition">
+              <div className="flex justify-between items-start mb-3">
+                <span className="text-zinc-200 font-semibold">@{a.telegramUsername}</span>
+                <span className={a.role === "driver" ? "gradient-btn px-3 py-1 rounded-full text-xs font-bold" : "bg-zinc-700 text-cyan-400 px-3 py-1 rounded-full text-xs font-bold"}>{a.role === "driver" ? "ВОДІЙ" : "ПАСАЖИР"}</span>
+              </div>
+              <pre className="text-zinc-200 text-sm whitespace-pre-wrap font-sans mb-4">{a.aiText}</pre>
+              <div className="flex gap-2 flex-wrap">
+                <a href={"https://t.me/" + a.telegramUsername} target="_blank" className="gradient-btn px-4 py-2 rounded-lg text-sm font-bold">Написати</a>
+                {a.channelMessageId ? (<a href={"https://t.me/" + CHANNEL + "/" + a.channelMessageId} target="_blank" className="border border-zinc-700 text-zinc-300 px-4 py-2 rounded-lg text-sm font-bold hover:border-cyan-400 hover:text-cyan-400">У каналі</a>) : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <footer className="border-t border-zinc-800 px-6 py-8 text-center text-zinc-300 text-sm">
+        <p className="mb-2">Попутки Україна © 2026</p>
+        <p>Преміальна платформа для пошуку попутників</p>
+      </footer>
     </main>
   )
 }
