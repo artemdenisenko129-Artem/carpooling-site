@@ -4,7 +4,6 @@ import SearchForm from "../components/SearchForm"
 
 export const dynamic = "force-dynamic"
 
-const BOT = process.env.NEXT_PUBLIC_BOT_USERNAME || "poputky_bot"
 const CHANNEL = process.env.NEXT_PUBLIC_CHANNEL_USERNAME || "poputtky_ua"
 
 async function getAnnouncements(from?: string, to?: string) {
@@ -27,7 +26,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ f
   const params = await searchParams
   const announcements = await getAnnouncements(params.from, params.to)
   const channelLink = "https://t.me/" + CHANNEL
-  const botLink = "https://t.me/" + BOT
   const isFiltered = Boolean(params.from || params.to)
 
   return (
@@ -41,18 +39,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ f
         <p className="text-cyan-400 text-sm tracking-widest uppercase mb-4">Ексклюзивна спільнота попутників</p>
         <h1 className="text-5xl sm:text-6xl font-bold mb-6 leading-tight">Преміальні поїздки. Перевірені попутники. <span style={{color: "#FFFFFF"}}>Без турбот.</span></h1>
         <p className="text-zinc-300 text-lg mb-10 max-w-2xl mx-auto">Сучасна платформа для пошуку та публікації оголошень про спільні поїздки.</p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/new" className="gradient-btn px-8 py-4 rounded-xl font-bold transition">Опублікувати на сайті</Link>
-          <a href={botLink} target="_blank" className="border-2 border-cyan-400 text-cyan-400 px-8 py-4 rounded-xl font-bold hover:bg-cyan-400 hover:text-black transition">Через Telegram-бот</a>
-        </div>
-      </section>
-
-      <section className="px-6 py-12 text-center">
-        <div className="max-w-2xl mx-auto">
-          <p className="text-cyan-400 text-sm tracking-widest uppercase mb-2">Start Today</p>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Готовий опублікувати свою поїздку?</h2>
-          <p className="text-zinc-300 mb-8">Створи оголошення за хвилину і знайди попутника вже сьогодні.</p>
-          <Link href="/new" className="inline-block gradient-btn px-10 py-4 rounded-xl font-bold transition">Створити оголошення</Link>
+        <div className="flex justify-center">
+          <Link href="/new" className="gradient-btn px-10 py-4 rounded-xl font-bold transition">Створити оголошення</Link>
         </div>
       </section>
 
@@ -93,6 +81,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ f
                 <span className="text-zinc-200 font-semibold">@{a.telegramUsername}</span>
                 <span className={a.role === "driver" ? "gradient-btn px-3 py-1 rounded-full text-xs font-bold" : "bg-zinc-700 text-cyan-400 px-3 py-1 rounded-full text-xs font-bold"}>{a.role === "driver" ? "ВОДІЙ" : "ПАСАЖИР"}</span>
               </div>
+              {a.from && a.to ? (<div className="text-cyan-400 font-bold mb-2">{a.from} → {a.to}</div>) : null}
               <pre className="text-zinc-200 text-sm whitespace-pre-wrap font-sans mb-4">{a.aiText}</pre>
               <div className="flex gap-2 flex-wrap">
                 <a href={"https://t.me/" + a.telegramUsername} target="_blank" className="gradient-btn px-4 py-2 rounded-lg text-sm font-bold">Написати</a>
