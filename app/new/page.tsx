@@ -1,12 +1,24 @@
-﻿"use client"
+"use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
-const PLACEHOLDER_EXAMPLE = `Опиши свій маршрут.
+function LogoSVG() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8" stroke="#1a1a2e" strokeWidth="13" strokeLinecap="round" fill="none"/>
+      <path d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8" stroke="#5B8FD9" strokeWidth="8" strokeLinecap="round" fill="none"/>
+      <circle cx="42" cy="8" r="9" fill="#E53935" />
+      <circle cx="42" cy="8" r="3.5" fill="white" />
+      <path d="M42 17 L38.5 23 L45.5 23 Z" fill="#E53935" />
+      <circle cx="18" cy="70" r="9" fill="#5B8FD9" />
+      <circle cx="18" cy="70" r="3.5" fill="white" />
+      <path d="M18 79 L14.5 85 L21.5 85 Z" fill="#5B8FD9" />
+    </svg>
+  )
+}
 
-Приклад:
-Їду щодня з Ірпінь (ЖД вокзал) до Києва (Оболонь) і назад.
+const PLACEHOLDER_EXAMPLE = `Їду щодня з Ірпінь (ЖД вокзал) до Києва (Оболонь) і назад.
 Виїзд ~7:00, назад ~18:00. Через Гостомель, КПП.
 Є 1 місце. Пишіть в особисті.`
 
@@ -35,77 +47,175 @@ export default function NewAnnouncement() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || "Failed to create")
+        throw new Error(data.error || "Помилка публікації")
       }
       router.push("/")
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Невідома помилка")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <main className="min-h-screen text-white">
-      <nav className="border-b border-zinc-800 px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold gradient-text">Попутки UA</Link>
-        <Link href="/" className="text-zinc-400 hover:text-cyan-400 text-sm">На головну</Link>
-      </nav>
+    <div className="min-h-screen bg-[#F3F4F6]">
 
-      <section className="px-6 py-12 max-w-2xl mx-auto">
-        <p className="text-cyan-400 text-sm tracking-widest uppercase mb-2 text-center">Нова поїздка</p>
-        <h1 className="text-4xl sm:text-5xl font-bold mb-3 text-center"><span className="gradient-text">Створи оголошення</span></h1>
-        <p className="text-zinc-400 text-center mb-10">Заповни всі поля і знайди свого попутника</p>
+      {/* Хедер */}
+      <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 no-underline">
+          <LogoSVG />
+          <span className="text-base font-extrabold text-[#111827]">
+            Попутки<span style={{ color: "#5B8FD9" }}>UA</span>
+          </span>
+        </Link>
+        <Link
+          href="/"
+          className="text-sm text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline"
+        >
+          ← На головну
+        </Link>
+      </header>
 
-        <form onSubmit={handleSubmit} className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-6 backdrop-blur">
-          <label className="block mb-5">
-            <span className="block text-cyan-400 text-xs tracking-widest uppercase mb-2">Telegram username</span>
-            <input type="text" required placeholder="@your_username" value={form.telegramUsername} onChange={(e) => setForm({ ...form, telegramUsername: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none" />
-          </label>
+      {/* Форма */}
+      <div className="px-4 py-6 pb-10 max-w-lg mx-auto">
+        <h1 className="text-2xl font-extrabold text-[#111827] mb-1">Нове оголошення</h1>
+        <p className="text-sm text-[#9CA3AF] mb-6">Заповни форму — оголошення з&#39;явиться на сайті та в Telegram-каналі</p>
 
-          <label className="block mb-5">
-            <span className="block text-cyan-400 text-xs tracking-widest uppercase mb-2">Хто ти?</span>
-            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white focus:border-cyan-400 focus:outline-none">
-              <option value="driver">Водій</option>
-              <option value="passenger">Пасажир</option>
-            </select>
-          </label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-            <label className="block">
-              <span className="block text-cyan-400 text-xs tracking-widest uppercase mb-2">Звідки</span>
-              <input type="text" required placeholder="Київ" value={form.from} onChange={(e) => setForm({ ...form, from: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none" />
+          {/* Telegram username */}
+          <div>
+            <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+              Telegram username
             </label>
-            <label className="block">
-              <span className="block text-cyan-400 text-xs tracking-widest uppercase mb-2">Куди</span>
-              <input type="text" required placeholder="Львів" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none" />
-            </label>
+            <input
+              type="text"
+              required
+              placeholder="@your_username"
+              value={form.telegramUsername}
+              onChange={(e) => setForm({ ...form, telegramUsername: e.target.value })}
+              className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+            />
           </div>
 
-          <label className="block mb-5">
-            <span className="block text-cyan-400 text-xs tracking-widest uppercase mb-2">Опиши свій маршрут</span>
-            <textarea required rows={9} placeholder={PLACEHOLDER_EXAMPLE} value={form.aiText} onChange={(e) => setForm({ ...form, aiText: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white placeholder-zinc-500 focus:border-cyan-400 focus:outline-none resize-none" />
+          {/* Роль */}
+          <div>
+            <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+              Ти хто?
+            </label>
+            <div className="flex gap-3">
+              {[
+                { val: "driver",    label: "🚗 Водій" },
+                { val: "passenger", label: "💺 Пасажир" },
+              ].map(({ val, label }) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setForm({ ...form, role: val })}
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all"
+                  style={form.role === val
+                    ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }
+                    : { background: "white",   borderColor: "#E5E7EB",  color: "#374151" }
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Звідки / Куди */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+                Звідки
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Ірпінь"
+                value={form.from}
+                onChange={(e) => setForm({ ...form, from: e.target.value })}
+                className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+                Куди
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Київ"
+                value={form.to}
+                onChange={(e) => setForm({ ...form, to: e.target.value })}
+                className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+              />
+            </div>
+          </div>
+
+          {/* Опис */}
+          <div>
+            <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+              Опис маршруту
+            </label>
+            <textarea
+              required
+              rows={6}
+              placeholder={PLACEHOLDER_EXAMPLE}
+              value={form.aiText}
+              onChange={(e) => setForm({ ...form, aiText: e.target.value })}
+              className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9] resize-none"
+            />
+            <p className="text-xs text-[#9CA3AF] mt-1">
+              Вкажи час, дні, зупинки, кількість місць — все що важливо попутнику
+            </p>
+          </div>
+
+          {/* Туди-назад */}
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <div
+              className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0"
+              style={form.isRoundTrip
+                ? { background: "#5B8FD9", borderColor: "#5B8FD9" }
+                : { background: "white", borderColor: "#D1D5DB" }
+              }
+            >
+              {form.isRoundTrip && <span className="text-white text-xs font-bold">✓</span>}
+            </div>
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={form.isRoundTrip}
+              onChange={(e) => setForm({ ...form, isRoundTrip: e.target.checked })}
+            />
+            <span className="text-sm text-[#374151]">Поїздка туди-назад (↩ обидва напрямки)</span>
           </label>
 
-          <label className="flex items-center mb-6 cursor-pointer">
-            <input type="checkbox" checked={form.isRoundTrip} onChange={(e) => setForm({ ...form, isRoundTrip: e.target.checked })} className="mr-3 w-5 h-5 accent-cyan-400" />
-            <span className="text-zinc-300">Поїздка туди-назад</span>
-          </label>
+          {/* Помилка */}
+          {error && (
+            <div className="bg-[#FDECEA] border border-[#FECACA] rounded-xl p-3 text-sm text-[#B91C1C]">
+              ⚠️ {error}
+            </div>
+          )}
 
-          {error ? (<div className="bg-red-950 border border-red-800 text-red-300 p-3 rounded-xl mb-4 text-sm">Помилка: {error}</div>) : null}
-
-          <button type="submit" disabled={loading} className="w-full gradient-btn py-4 rounded-xl font-bold transition disabled:opacity-50">
-            {loading ? "Публікую..." : "Опублікувати"}
+          {/* Кнопка */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 rounded-2xl text-base font-bold text-white transition-all disabled:opacity-60"
+            style={{ background: "#5B8FD9", boxShadow: "0 4px 16px rgba(91,143,217,0.4)" }}
+          >
+            {loading ? "Публікую..." : "Опублікувати оголошення"}
           </button>
 
-          <Link href="/" className="block text-center mt-4 text-zinc-400 hover:text-cyan-400 text-sm">На головну</Link>
+          <p className="text-xs text-center text-[#9CA3AF]">
+            Публікуючи, ти погоджуєшся з{" "}
+            <a href="#" className="underline" style={{ color: "#5B8FD9" }}>правилами сайту</a>
+          </p>
         </form>
-      </section>
-
-      <footer className="border-t border-zinc-800 px-6 py-8 text-center text-zinc-500 text-sm mt-12">
-        <p>Попутки Україна © 2026</p>
-      </footer>
-    </main>
+      </div>
+    </div>
   )
 }

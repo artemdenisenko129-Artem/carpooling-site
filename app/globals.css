@@ -1,122 +1,43 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 @theme {
-  --font-sans: "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Marker Felt", cursive;
+  /* Кольори з логотипу Попутки UA */
+  --color-pop-blue:       #5B8FD9;
+  --color-pop-blue-dark:  #3A6BBF;
+  --color-pop-blue-light: #EBF2FC;
+  --color-pop-blue-mid:   #C5D9F5;
+  --color-pop-red:        #E53935;
+  --color-pop-red-light:  #FDECEA;
+
+  /* Шрифт */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-html, body, * {
-  font-family: "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Marker Felt", cursive !important;
+/* ── Базові стилі ── */
+html, body {
+  min-height: 100%;
+  background: #F3F4F6;
+  color: #111827;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-html, body { min-height: 100vh; color: #1A1A1A; }
-
-@keyframes bgShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* ── Утиліти ── */
+.brand-shadow-blue {
+  box-shadow: 0 4px 20px rgba(91, 143, 217, 0.4);
+}
+.brand-shadow-sm {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+}
+.brand-shadow-md {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-body {
-  background: linear-gradient(135deg, #FFFFFF 0%, #DBEAFE 20%, #93C5FD 40%, #3B82F6 60%, #93C5FD 80%, #DBEAFE 100%);
-  background-size: 400% 400%;
-  background-attachment: fixed;
-  animation: bgShift 18s ease infinite;
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
 
-main { background: transparent !important; }
-
-.bg-zinc-950 { background: transparent !important; }
-.bg-zinc-900 { background: rgba(255, 255, 255, 0.9) !important; backdrop-filter: blur(10px); }
-.bg-zinc-900\/40 { background: rgba(255, 255, 255, 0.55) !important; backdrop-filter: blur(10px); }
-.bg-zinc-900\/70 { background: rgba(255, 255, 255, 0.85) !important; backdrop-filter: blur(10px); }
-
-.text-white { color: #1A1A1A !important; }
-.text-zinc-200 { color: #1F2937 !important; }
-.text-zinc-300 { color: #1A1A1A !important; }
-.text-zinc-400 { color: #4B5563 !important; }
-.text-zinc-500 { color: #6B7280 !important; }
-
-.border-zinc-800 { border-color: rgba(255, 255, 255, 0.7) !important; }
-.border-zinc-700 { border-color: rgba(255, 255, 255, 0.9) !important; }
-
-.hover\:border-cyan-400:hover { border-color: #2563EB !important; }
-.hover\:text-cyan-400:hover { color: #2563EB !important; }
-
-.bg-zinc-700 { background: #EFF6FF !important; }
-
-input, textarea, select {
-  background: white !important;
-  border-color: #BFDBFE !important;
-  color: #1A1A1A !important;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s;
-}
-input:focus, textarea:focus, select:focus {
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.65), 0 6px 14px rgba(0, 0, 0, 0.4);
-}
-input::placeholder, textarea::placeholder { color: #9CA3AF !important; }
-
-@keyframes shimmer {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
-}
-
-.gradient-text {
-  background: linear-gradient(90deg, #1D4ED8, #3B82F6, #1E40AF, #2563EB, #1D4ED8);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent !important;
-  animation: shimmer 3s linear infinite;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.7));
-}
-
-.gradient-btn {
-  background: linear-gradient(90deg, #1D4ED8, #3B82F6, #1E40AF, #2563EB, #1D4ED8) !important;
-  background-size: 200% auto !important;
-  animation: shimmer 4s linear infinite;
-  color: white !important;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), 0 6px 14px rgba(0, 0, 0, 0.5), 0 0 25px rgba(59, 130, 246, 0.6);
-  transition: all 0.3s;
-}
-.gradient-btn:hover {
-  animation-duration: 1.5s;
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.85), 0 10px 20px rgba(0, 0, 0, 0.6), 0 0 35px rgba(59, 130, 246, 0.8);
-  transform: translateY(-4px);
-}
-
-.text-cyan-400 { color: #2563EB !important; }
-.text-amber-400 { color: #2563EB !important; }
-
-::selection { background: #3B82F6; color: white; }
-
-form, .rounded-2xl, .rounded-xl {
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 12px 24px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s;
-}
-.rounded-2xl:hover {
-  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.75), 0 18px 36px rgba(0, 0, 0, 0.55);
-  transform: translateY(-6px);
-}
-
-h1 { text-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 4px 8px rgba(0, 0, 0, 0.5); }
-h2 { text-shadow: 0 6px 18px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.4); }
-h3 { text-shadow: 0 4px 14px rgba(0, 0, 0, 0.55); }
-
-nav {
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
-  position: relative;
-  z-index: 10;
-}
-footer { box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.5); }
-
-a:hover { text-shadow: 0 0 16px rgba(0, 0, 0, 0.8); }
-
-.border-2 {
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
-  transition: all 0.3s;
-}
-.border-2:hover {
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.75);
-  transform: translateY(-4px);
-}
+/* ── Selection ── */
+::selection { background: #5B8FD9; color: white; }
