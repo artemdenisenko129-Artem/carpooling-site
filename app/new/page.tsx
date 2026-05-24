@@ -38,6 +38,7 @@ export default function NewAnnouncement() {
     fromLng: null as number | null,
     toLat:   null as number | null,
     toLng:   null as number | null,
+    waypoints: [] as { name: string; lat: number | null; lng: number | null }[],
   })
 
   async function handleSubmit(e: React.FormEvent) {
@@ -158,6 +159,54 @@ export default function NewAnnouncement() {
                 inputClassName="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
               />
             </div>
+          </div>
+
+
+          {/* Проміжні зупинки */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-[#374151] uppercase tracking-wide">
+                Проміжні зупинки
+              </label>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, waypoints: [...form.waypoints, { name: "", lat: null, lng: null }] })}
+                className="text-xs font-semibold px-3 py-1 rounded-full border transition-all"
+                style={{ background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }}
+              >
+                + Додати зупинку
+              </button>
+            </div>
+            {form.waypoints.length === 0 && (
+              <p className="text-xs text-[#9CA3AF]">
+                Необов&apos;язково — додай міста або райони по дорозі
+              </p>
+            )}
+            {form.waypoints.map((wp, idx) => (
+              <div key={idx} className="flex items-center gap-2 mb-2">
+                <div className="flex-1">
+                  <PlaceAutocomplete
+                    value={wp.name}
+                    onChange={(v, place) => {
+                      const updated = [...form.waypoints]
+                      updated[idx] = { name: v, lat: place?.lat ?? null, lng: place?.lng ?? null }
+                      setForm({ ...form, waypoints: updated })
+                    }}
+                    placeholder={`Зупинка ${idx + 1}`}
+                    dotColor="blue"
+                    inputClassName="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, waypoints: form.waypoints.filter((_, i) => i !== idx) })}
+                  className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#E53935] hover:bg-[#FDECEA] transition-all"
+                  aria-label="Видалити зупинку"
+                >
+                  &#215;
+                </button>
+              </div>
+            ))}
           </div>
 
           {/* Опис */}

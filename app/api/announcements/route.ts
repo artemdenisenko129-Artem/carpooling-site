@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { telegramUsername, role, from, to, aiText, isRoundTrip,
-            fromLat, fromLng, toLat, toLng } = body
+            fromLat, fromLng, toLat, toLng, waypoints } = body
 
     if (!telegramUsername || !role || !from || !to || !aiText) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -68,6 +68,10 @@ export async function POST(request: Request) {
       createdAt: new Date(),
       ...(fromLat != null && fromLng != null ? { fromLat: Number(fromLat), fromLng: Number(fromLng) } : {}),
       ...(toLat   != null && toLng   != null ? { toLat:   Number(toLat),   toLng:   Number(toLng)   } : {}),
+      ...(Array.isArray(waypoints) && waypoints.length > 0
+        ? { waypoints: waypoints.filter((w: any) => w.lat != null && w.lng != null)
+              .map((w: any) => ({ name: String(w.name || ""), lat: Number(w.lat), lng: Number(w.lng) })) }
+        : {}),
     }
 
     const result = await db.collection("announcements").insertOne(doc)

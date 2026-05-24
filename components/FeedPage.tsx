@@ -47,6 +47,7 @@ interface Announcement {
   fromLng?: number
   toLat?: number
   toLng?: number
+  waypoints?: { name: string; lat: number; lng: number }[]
 }
 
 interface Props {
