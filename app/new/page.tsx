@@ -34,6 +34,10 @@ export default function NewAnnouncement() {
     to: "",
     aiText: "",
     isRoundTrip: false,
+    fromLat: null as number | null,
+    fromLng: null as number | null,
+    toLat:   null as number | null,
+    toLng:   null as number | null,
   })
 
   async function handleSubmit(e: React.FormEvent) {
@@ -134,7 +138,8 @@ export default function NewAnnouncement() {
               </label>
               <PlaceAutocomplete
                 value={form.from}
-                onChange={(v) => setForm({ ...form, from: v })}
+                onChange={(v, place) => setForm({ ...form, from: v,
+                  fromLat: place?.lat ?? null, fromLng: place?.lng ?? null })}
                 placeholder="Ірпінь"
                 dotColor="blue"
                 inputClassName="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
@@ -146,7 +151,8 @@ export default function NewAnnouncement() {
               </label>
               <PlaceAutocomplete
                 value={form.to}
-                onChange={(v) => setForm({ ...form, to: v })}
+                onChange={(v, place) => setForm({ ...form, to: v,
+                  toLat: place?.lat ?? null, toLng: place?.lng ?? null })}
                 placeholder="Київ"
                 dotColor="red"
                 inputClassName="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"

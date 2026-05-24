@@ -1,9 +1,11 @@
 "use client"
-import { useState, useTransition } from "react"
+import { useState, useTransition, lazy, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
+
+const LeafletMap = lazy(() => import("./LeafletMap"))
 
 function LogoSVG() {
   return (
@@ -41,6 +43,10 @@ interface Announcement {
   channelUsername?: string
   createdAt: string
   isRoundTrip?: boolean
+  fromLat?: number
+  fromLng?: number
+  toLat?: number
+  toLng?: number
 }
 
 interface Props {
@@ -258,22 +264,27 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
       {view === "map" && (
         <div className="px-4 pt-3 pb-32">
-          <div
-            className="rounded-2xl border border-dashed border-[#D1D5DB] flex flex-col items-center justify-center gap-3 text-[#9CA3AF]"
-            style={{ background: "#EBF2FC", minHeight: 340 }}
-          >
-            <div className="text-4xl">🗺</div>
-            <p className="text-sm font-medium text-[#6B7280]">Карта маршрутів</p>
-            <p className="text-xs text-center max-w-[200px]">
-              Leaflet + OpenStreetMap<br /><span className="text-[#5B8FD9]">Фаза 1, крок 3</span>
+          <Suspense fallback={
+            <div
+              className="rounded-2xl border border-[#E5E7EB] flex items-center justify-center text-[#9CA3AF] text-sm"
+              style={{ height: 400, background: "#EBF2FC" }}
+            >
+              Завантаження карти...
+            </div>
+          }>
+            <LeafletMap announcements={filtered} />
+          </Suspense>
+          {filtered.filter(a => a.fromLat != null).length === 0 && (
+            <p className="mt-3 text-xs text-center text-[#9CA3AF]">
+              Нові оголошення з'являться на карті після публікації через оновлену форму
             </p>
-          </div>
+          )}
           <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
             <span className="flex items-center gap-1">
-              <span style={{ color: "#5B8FD9" }}>📍</span> Синя крапля — старт/проміжна
+              <span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення
             </span>
             <span className="flex items-center gap-1">
-              <span style={{ color: "#E53935" }}>📍</span> Червона крапля — кінцева
+              <span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення
             </span>
           </div>
         </div>
@@ -302,7 +313,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
       >
         <Link
           href="/new"
-          className="pointer-events-auto block text-center w-full py-4 rounded-2xl text-base font-bold text-white no-underline transition-colors"
+          className="pointer-events-auto block text-cente
+r-2xl text-base font-bold text-white no-underline transition-colors"
           style={{ background: "#5B8FD9", boxShadow: "0 4px 20px rgba(91,143,217,0.4)" }}
         >
           + Створити оголошення
