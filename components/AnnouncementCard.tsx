@@ -12,6 +12,13 @@ interface Announcement {
   channelUsername?: string
   createdAt: string
   isRoundTrip?: boolean
+  tripType?: "once" | "regular"
+  departureDate?: string
+  schedule?: string[]
+  departureTime?: string
+  phone?: string
+  community?: string
+  seats?: number
 }
 
 interface Props {
@@ -41,6 +48,28 @@ function formatDate(dateStr: string): string {
 
 function getInitials(username: string): string {
   return username.replace("@", "").charAt(0).toUpperCase()
+}
+
+
+const DAY_LABELS: Record<string, string> = {
+  mon: "Пн", tue: "Вт", wed: "Ср", thu: "Чт",
+  fri: "Пт", sat: "Сб", sun: "Нд",
+}
+const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"]
+
+function formatSchedule(tripType?: string, departureDate?: string, schedule?: string[], departureTime?: string): string {
+  const time = departureTime ? ` о ${departureTime}` : ""
+  if (tripType === "once" && departureDate) {
+    try {
+      const d = new Date(departureDate)
+      return d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) + time
+    } catch { return departureDate + time }
+  }
+  if (schedule && schedule.length > 0) {
+    const days = DAY_ORDER.filter(d => schedule.includes(d)).map(d => DAY_LABELS[d]).join(", ")
+    return days + time
+  }
+  return time.trim()
 }
 
 export default function AnnouncementCard({ announcement: a, isLoggedIn = false }: Props) {
@@ -88,12 +117,28 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
         </div>
 
         {/* Маршрут */}
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-2">
           <span className="text-base font-extrabold text-[#111827] leading-tight">{a.from}</span>
           <span className="text-[#9CA3AF] text-sm shrink-0">→</span>
           <span className="text-base font-extrabold text-[#111827] leading-tight">{a.to}</span>
           {a.isRoundTrip && (
             <span className="text-xs text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full shrink-0">↩ туди-назад</span>
+          )}
+        </div>
+
+        {/* Мета-рядок: розклад, місця, спільнота */}
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {(() => {
+            const sched = formatSchedule(a.tripType, a.departureDate, a.schedule, a.departureTime)
+            return sched ? (
+              <span className="text-xs bg-[#F3F4F6] text-[#374151] px-2 py-0.5 rounded-full">&#128337; {sched}</span>
+            ) : null
+          })()}
+          {isDriver && a.seats != null && a.seats > 0 && (
+            <span className="text-xs bg-[#F3F4F6] text-[#374151] px-2 py-0.5 rounded-full">&#128100; {a.seats} {a.seats === 1 ? "місце" : a.seats < 5 ? "місця" : "місць"}</span>
+          )}
+          {a.community && (
+            <span className="text-xs bg-[#EBF2FC] text-[#3A6BBF] px-2 py-0.5 rounded-full">&#127968; {a.community}</span>
           )}
         </div>
 

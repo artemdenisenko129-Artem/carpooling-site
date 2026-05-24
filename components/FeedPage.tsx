@@ -48,6 +48,13 @@ interface Announcement {
   toLat?: number
   toLng?: number
   waypoints?: { name: string; lat: number; lng: number }[]
+  tripType?: "once" | "regular"
+  departureDate?: string
+  schedule?: string[]
+  departureTime?: string
+  phone?: string
+  community?: string
+  seats?: number
 }
 
 interface Props {

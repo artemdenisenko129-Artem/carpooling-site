@@ -39,6 +39,13 @@ export default function NewAnnouncement() {
     toLat:   null as number | null,
     toLng:   null as number | null,
     waypoints: [] as { name: string; lat: number | null; lng: number | null }[],
+    tripType: "regular" as "once" | "regular",
+    departureDate: "",
+    schedule: [] as string[],
+    departureTime: "",
+    phone: "",
+    community: "",
+    seats: 1,
   })
 
   async function handleSubmit(e: React.FormEvent) {
@@ -253,6 +260,140 @@ export default function NewAnnouncement() {
               ⚠️ {error}
             </div>
           )}
+
+
+          {/* Коли їдеш */}
+          <div>
+            <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+              Коли їдеш?
+            </label>
+            {/* Тип поїздки */}
+            <div className="flex gap-2 mb-3">
+              {([["once", "Конкретна дата"], ["regular", "Регулярно"]] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setForm({ ...form, tripType: val })}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all"
+                  style={form.tripType === val
+                    ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }
+                    : { background: "white", borderColor: "#E5E7EB", color: "#374151" }
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {/* Одноразова — дата */}
+            {form.tripType === "once" && (
+              <input
+                type="date"
+                value={form.departureDate}
+                onChange={(e) => setForm({ ...form, departureDate: e.target.value })}
+                className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] outline-none transition-colors focus:border-[#5B8FD9] mb-3"
+              />
+            )}
+            {/* Регулярна — дні тижня */}
+            {form.tripType === "regular" && (
+              <div className="flex gap-1.5 flex-wrap mb-3">
+                {(["mon","tue","wed","thu","fri","sat","sun"] as const).map((d, i) => {
+                  const labels = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"]
+                  const active = form.schedule.includes(d)
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setForm({
+                        ...form,
+                        schedule: active
+                          ? form.schedule.filter((x) => x !== d)
+                          : [...form.schedule, d],
+                      })}
+                      className="w-9 h-9 rounded-full text-xs font-bold border-2 transition-all"
+                      style={active
+                        ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
+                        : { background: "white", borderColor: "#E5E7EB", color: "#374151" }
+                      }
+                    >
+                      {labels[i]}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+            {/* Час відправлення */}
+            <div className="flex items-center gap-3">
+              <label className="text-xs text-[#6B7280] shrink-0">Час відправлення:</label>
+              <input
+                type="time"
+                value={form.departureTime}
+                onChange={(e) => setForm({ ...form, departureTime: e.target.value })}
+                className="flex-1 bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] outline-none transition-colors focus:border-[#5B8FD9]"
+              />
+            </div>
+          </div>
+
+          {/* Кількість місць — тільки для водія */}
+          {form.role === "driver" && (
+            <div>
+              <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+                Кількість місць
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, seats: Math.max(1, form.seats - 1) })}
+                  className="w-10 h-10 rounded-full border-2 text-lg font-bold transition-all"
+                  style={{ borderColor: "#E5E7EB", color: "#374151", background: "white" }}
+                >
+                  −
+                </button>
+                <span className="text-xl font-extrabold text-[#111827] w-6 text-center">
+                  {form.seats}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, seats: Math.min(8, form.seats + 1) })}
+                  className="w-10 h-10 rounded-full border-2 text-lg font-bold transition-all"
+                  style={{ borderColor: "#5B8FD9", color: "#3A6BBF", background: "#EBF2FC" }}
+                >
+                  +
+                </button>
+                <span className="text-xs text-[#9CA3AF]">вільних місць у машині</span>
+              </div>
+            </div>
+          )}
+
+          {/* Телефон */}
+          <div>
+            <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+              Телефон <span className="text-[#9CA3AF] normal-case font-normal">(необов&apos;язково)</span>
+            </label>
+            <input
+              type="tel"
+              placeholder="+380 XX XXX XX XX"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+            />
+          </div>
+
+          {/* Спільнота */}
+          <div>
+            <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
+              Спільнота <span className="text-[#9CA3AF] normal-case font-normal">(необов&apos;язково)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Напр.: ЖК Новий Автограф, КПІ, Samsung Ukraine, Оболонь"
+              value={form.community}
+              onChange={(e) => setForm({ ...form, community: e.target.value })}
+              className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+            />
+            <p className="text-xs text-[#9CA3AF] mt-1">
+              ЖК, університет, компанія або район — щоб сусіди тебе знайшли
+            </p>
+          </div>
 
           {/* Кнопка */}
           <button
