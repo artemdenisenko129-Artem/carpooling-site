@@ -123,7 +123,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
       <div className="bg-white border-b border-[#E5E7EB] px-4 pt-3 pb-0">
         <form onSubmit={handleSearch}>
           <div
-            className="flex items-stretch rounded-xl border transition-colors overflow-hidden mb-3"
+            className="flex items-stretch rounded-xl border transition-colors mb-3"
             style={{ background: "#F3F4F6", borderColor: isPending ? "#5B8FD9" : "#E5E7EB" }}
           >
             <div className="flex flex-col items-center justify-center gap-1 px-3 py-3 shrink-0">
@@ -149,7 +149,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             </div>
             <button
               type="submit"
-              className="px-4 text-lg font-bold text-white shrink-0 transition-colors"
+              className="px-4 text-lg font-bold text-white shrink-0 transition-colors rounded-r-xl"
               style={{ background: "#5B8FD9" }}
               aria-label="Знайти"
             >
