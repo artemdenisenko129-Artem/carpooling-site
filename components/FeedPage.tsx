@@ -1,30 +1,24 @@
 "use client"
 import { useState, useTransition } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import AnnouncementCard from "./AnnouncementCard"
+import PlaceAutocomplete from "./PlaceAutocomplete"
 
-/* ────────────────────────────────────────
-   SVG логотип — S-подібна дорога
-   ──────────────────────────────────────── */
 function LogoSVG() {
   return (
     <svg width="36" height="36" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Дорога — S-форма (фон/тінь) */}
       <path
         d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8"
         stroke="#1a1a2e" strokeWidth="13" strokeLinecap="round" fill="none"
       />
-      {/* Дорога — S-форма (синя поверхня) */}
       <path
         d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8"
         stroke="#5B8FD9" strokeWidth="8" strokeLinecap="round" fill="none"
       />
-      {/* Червоний маркер — старт (вгорі) */}
       <circle cx="42" cy="8" r="9" fill="#E53935" />
       <circle cx="42" cy="8" r="3.5" fill="white" />
       <path d="M42 17 L38.5 23 L45.5 23 Z" fill="#E53935" />
-      {/* Синій маркер — кінець (внизу) */}
       <circle cx="18" cy="70" r="9" fill="#5B8FD9" />
       <circle cx="18" cy="70" r="3.5" fill="white" />
       <path d="M18 79 L14.5 85 L21.5 85 Z" fill="#5B8FD9" />
@@ -32,9 +26,6 @@ function LogoSVG() {
   )
 }
 
-/* ────────────────────────────────────────
-   Типи
-   ──────────────────────────────────────── */
 type RoleFilter = "all" | "driver" | "passenger"
 type TypeFilter = "all" | "roundTrip" | "oneWay"
 type ViewMode = "list" | "map"
@@ -58,28 +49,20 @@ interface Props {
   initialTo: string
 }
 
-/* ────────────────────────────────────────
-   Головний компонент
-   ──────────────────────────────────────── */
 export default function FeedPage({ announcements, initialFrom, initialTo }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
-  // Поля пошуку
   const [fromVal, setFromVal] = useState(initialFrom)
   const [toVal, setToVal] = useState(initialTo)
 
-  // Фільтри (клієнтські)
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
 
-  // Перемикач вигляду
   const [view, setView] = useState<ViewMode>("list")
 
-  // TODO (Фаза 1, крок 7): замінити false на реальний стан після впровадження Auth.js
   const isLoggedIn = false
 
-  /* ── Пошук (URL params → server refetch) ── */
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const params = new URLSearchParams()
@@ -96,7 +79,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
     startTransition(() => router.push("/"))
   }
 
-  /* ── Клієнтська фільтрація ── */
   const filtered = announcements.filter((a) => {
     if (roleFilter === "driver" && a.role !== "driver") return false
     if (roleFilter === "passenger" && a.role !== "passenger") return false
@@ -110,9 +92,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
 
-      {/* ══════════════════════════════════
-          ХЕДЕР
-          ══════════════════════════════════ */}
       <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
           <LogoSVG />
@@ -141,47 +120,40 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         )}
       </header>
 
-      {/* ══════════════════════════════════
-          ПОШУК + ФІЛЬТРИ
-          ══════════════════════════════════ */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 pt-3 pb-0">
-        {/* Поле пошуку */}
         <form onSubmit={handleSearch}>
           <div
             className="flex items-stretch rounded-xl border transition-colors overflow-hidden mb-3"
             style={{ background: "#F3F4F6", borderColor: isPending ? "#5B8FD9" : "#E5E7EB" }}
           >
-            {/* Іконки маршруту */}
             <div className="flex flex-col items-center justify-center gap-1 px-3 py-3 shrink-0">
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#5B8FD9" }} />
               <div className="w-px h-4 bg-[#D1D5DB]" />
               <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#E53935" }} />
             </div>
-            {/* Поля вводу */}
             <div className="flex-1 flex flex-col divide-y divide-[#E5E7EB]">
-              <input
-                type="text"
+              <PlaceAutocomplete
                 value={fromVal}
-                onChange={(e) => setFromVal(e.target.value)}
+                onChange={(v) => setFromVal(v)}
                 placeholder="Звідки..."
-                className="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
+                dotColor="blue"
+                inputClassName="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
               />
-              <input
-                type="text"
+              <PlaceAutocomplete
                 value={toVal}
-                onChange={(e) => setToVal(e.target.value)}
+                onChange={(v) => setToVal(v)}
                 placeholder="Куди..."
-                className="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
+                dotColor="red"
+                inputClassName="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
               />
             </div>
-            {/* Кнопка пошуку */}
             <button
               type="submit"
               className="px-4 text-lg font-bold text-white shrink-0 transition-colors"
               style={{ background: "#5B8FD9" }}
               aria-label="Знайти"
             >
-              →
+              &rarr;
             </button>
           </div>
           {isSearchActive && (
@@ -195,9 +167,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
           )}
         </form>
 
-        {/* Фільтри */}
         <div className="flex gap-2 pb-3 overflow-x-auto scrollbar-none" style={{ scrollbarWidth: "none" }}>
-          {/* Роль */}
           {(["all", "driver", "passenger"] as RoleFilter[]).map((r) => (
             <button
               key={r}
@@ -211,7 +181,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               {r === "all" ? "🚘 Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
             </button>
           ))}
-          {/* Тип */}
           {(["roundTrip", "oneWay"] as TypeFilter[]).map((t) => (
             <button
               key={t}
@@ -225,7 +194,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               {t === "roundTrip" ? "↩ Туди-назад" : "→ В один бік"}
             </button>
           ))}
-          {/* Спільнота */}
           {isLoggedIn ? (
             <button
               className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
@@ -247,9 +215,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       </div>
 
-      {/* ══════════════════════════════════
-          ПЕРЕМИКАЧ СПИСОК / КАРТА
-          ══════════════════════════════════ */}
       <div className="bg-white border-b border-[#E5E7EB] flex">
         {(["list", "map"] as ViewMode[]).map((v) => (
           <button
@@ -266,9 +231,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         ))}
       </div>
 
-      {/* ══════════════════════════════════
-          СПИСОК
-          ══════════════════════════════════ */}
       {view === "list" && (
         <div className="px-4 pt-3 pb-32 flex flex-col gap-3">
           <p className="text-xs text-[#9CA3AF]">
@@ -294,9 +256,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* ══════════════════════════════════
-          КАРТА (заглушка — Фаза 1, крок 3)
-          ══════════════════════════════════ */}
       {view === "map" && (
         <div className="px-4 pt-3 pb-32">
           <div
@@ -306,8 +265,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             <div className="text-4xl">🗺</div>
             <p className="text-sm font-medium text-[#6B7280]">Карта маршрутів</p>
             <p className="text-xs text-center max-w-[200px]">
-              Leaflet + OpenStreetMap<br />
-              <span className="text-[#5B8FD9]">Фаза 1, крок 3</span>
+              Leaflet + OpenStreetMap<br /><span className="text-[#5B8FD9]">Фаза 1, крок 3</span>
             </p>
           </div>
           <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
@@ -321,9 +279,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* ══════════════════════════════════
-          ФУТЕР
-          ══════════════════════════════════ */}
       <footer
         className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]"
         style={{ marginBottom: 80 }}
@@ -337,15 +292,11 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors"
-          >
-            Telegram-канал
+          >Telegram-канал
           </a>
         </div>
       </footer>
 
-      {/* ══════════════════════════════════
-          FAB — кнопка «Створити оголошення»
-          ══════════════════════════════════ */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pb-5 pt-3 pointer-events-none"
         style={{ background: "linear-gradient(to top, rgba(243,244,246,1) 60%, rgba(243,244,246,0))" }}
       >

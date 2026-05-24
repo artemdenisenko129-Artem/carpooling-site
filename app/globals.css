@@ -41,3 +41,8 @@ html, body {
 
 /* ── Selection ── */
 ::selection { background: #5B8FD9; color: white; }
+
+/* ── Autocomplete spinner ── */
+@keyframes spin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}

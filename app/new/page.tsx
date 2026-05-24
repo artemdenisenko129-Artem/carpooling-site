@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import PlaceAutocomplete from "../../components/PlaceAutocomplete"
 
 function LogoSVG() {
   return (
@@ -131,26 +132,24 @@ export default function NewAnnouncement() {
               <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
                 Звідки
               </label>
-              <input
-                type="text"
-                required
-                placeholder="Ірпінь"
+              <PlaceAutocomplete
                 value={form.from}
-                onChange={(e) => setForm({ ...form, from: e.target.value })}
-                className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+                onChange={(v) => setForm({ ...form, from: v })}
+                placeholder="Ірпінь"
+                dotColor="blue"
+                inputClassName="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
                 Куди
               </label>
-              <input
-                type="text"
-                required
-                placeholder="Київ"
+              <PlaceAutocomplete
                 value={form.to}
-                onChange={(e) => setForm({ ...form, to: e.target.value })}
-                className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+                onChange={(v) => setForm({ ...form, to: v })}
+                placeholder="Київ"
+                dotColor="red"
+                inputClassName="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
               />
             </div>
           </div>
