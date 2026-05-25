@@ -30,15 +30,19 @@ export default function LeafletMap({ announcements }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const layersRef = useRef<any[]>([])
+  const clusterRef = useRef<any>(null)
 
   useEffect(() => {
     if (typeof window === "undefined" || !containerRef.current) return
     if (mapRef.current) return
 
-    import("leaflet").then((L) => {
+    Promise.all([
+      import("leaflet"),
+      import("leaflet.markercluster"),
+    ]).then(([L]) => {
       if (!containerRef.current || mapRef.current) return
 
-      // Fix default icon paths broken by webpack
+      // Fix default icon paths
       delete (L.Icon.Default.prototype as any)._getIconUrl
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -46,12 +50,28 @@ export default function LeafletMap({ announcements }: Props) {
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       })
 
-      // Inject leaflet CSS
+      // Leaflet CSS
       if (!document.getElementById("leaflet-css")) {
         const link = document.createElement("link")
         link.id = "leaflet-css"
         link.rel = "stylesheet"
         link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        document.head.appendChild(link)
+      }
+
+      // MarkerCluster CSS
+      if (!document.getElementById("markercluster-css")) {
+        const link = document.createElement("link")
+        link.id = "markercluster-css"
+        link.rel = "stylesheet"
+        link.href = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+        document.head.appendChild(link)
+      }
+      if (!document.getElementById("markercluster-default-css")) {
+        const link = document.createElement("link")
+        link.id = "markercluster-default-css"
+        link.rel = "stylesheet"
+        link.href = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
         document.head.appendChild(link)
       }
 
@@ -62,7 +82,7 @@ export default function LeafletMap({ announcements }: Props) {
       })
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: "&copy; OpenStreetMap contributors",
         maxZoom: 18,
       }).addTo(map)
 
@@ -74,6 +94,7 @@ export default function LeafletMap({ announcements }: Props) {
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
+        clusterRef.current = null
       }
     }
   }, [])
@@ -112,12 +133,12 @@ export default function LeafletMap({ announcements }: Props) {
       ? `<span style="font-size:11px;color:#6B7280;background:#F3F4F6;padding:1px 6px;border-radius:9px;margin-left:4px">&#8629; туди-назад</span>`
       : ""
     const preview = a.aiText && a.aiText.length > 0
-      ? `<div style="font-size:12px;color:#6B7280;margin-top:6px;line-height:1.4;max-width:240px">${a.aiText.slice(0, 110)}${a.aiText.length > 110 ? "…" : ""}</div>`
+      ? `<div style="font-size:12px;color:#6B7280;margin-top:6px;line-height:1.4;max-width:240px">${a.aiText.slice(0, 110)}${a.aiText.length > 110 ? "..." : ""}</div>`
       : ""
     const tgLink = `<a href="https://t.me/${a.telegramUsername}" target="_blank" rel="noopener noreferrer"
         style="display:block;margin-top:8px;padding:7px 12px;background:#229ED9;color:white;border-radius:8px;
                text-align:center;font-size:12px;font-weight:700;text-decoration:none">
-        &#9992; Написати в Telegram
+        Написати в Telegram
       </a>`
     return `<div style="font-family:Inter,-apple-system,sans-serif;min-width:200px;max-width:260px;padding:2px 0">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
@@ -136,21 +157,52 @@ export default function LeafletMap({ announcements }: Props) {
   }
 
   function renderMarkers(L: any, map: any) {
-    layersRef.current.forEach((l) => map.removeLayer(l))
+    // Видаляємо старі шари
+    layersRef.current.forEach((l) => {
+      try { map.removeLayer(l) } catch {}
+    })
     layersRef.current = []
 
-    const GREY   = "#9CA3AF"
-    const BLUE   = "#5B8FD9"
-    const RED    = "#E53935"
+    // Видаляємо старий кластер
+    if (clusterRef.current) {
+      try { map.removeLayer(clusterRef.current) } catch {}
+    }
+
+    const GREY = "#9CA3AF"
+    const BLUE = "#5B8FD9"
+    const RED  = "#E53935"
 
     const withCoords = announcements.filter(
       (a) => a.fromLat != null && a.fromLng != null && a.toLat != null && a.toLng != null
     )
 
+    if (withCoords.length === 0) return
+
+    // Створюємо кластерну групу для точок відправлення
+    const cluster = (L as any).markerClusterGroup({
+      maxClusterRadius: 40,
+      showCoverageOnHover: false,
+      iconCreateFunction: (c: any) => {
+        const count = c.getChildCount()
+        return L.divIcon({
+          className: "",
+          html: `<div style="
+            width:36px;height:36px;border-radius:50%;
+            background:#5B8FD9;color:white;
+            display:flex;align-items:center;justify-content:center;
+            font-size:13px;font-weight:700;
+            border:3px solid white;
+            box-shadow:0 2px 8px rgba(91,143,217,0.45)
+          ">${count}</div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        })
+      },
+    })
+
     const allPoints: [number, number][] = []
 
     withCoords.forEach((a) => {
-      // Build ordered list of all points: from → waypoints → to
       const points: { lat: number; lng: number; isTo?: boolean; isWaypoint?: boolean }[] = [
         { lat: a.fromLat!, lng: a.fromLng! },
         ...(a.waypoints ?? []).map((w) => ({ lat: w.lat, lng: w.lng, isWaypoint: true })),
@@ -159,38 +211,50 @@ export default function LeafletMap({ announcements }: Props) {
 
       const latlngs: [number, number][] = points.map((p) => [p.lat, p.lng])
 
-      // Dashed route polyline (hidden by default)
+      // Пунктирна лінія маршруту
       const routeLine = L.polyline(latlngs, {
         color: BLUE,
         weight: 2,
         opacity: 0,
         dashArray: "6 6",
-      })
+      }).addTo(map)
 
-      // Create markers
-      const markers = points.map((p) => {
+      // Маркери
+      const markers = points.map((p, idx) => {
         const inactiveIcon = p.isTo ? dropIcon(L, GREY) : circleIcon(L, GREY)
-        const activeIcon   = p.isTo ? dropIcon(L, RED)  : circleIcon(L, BLUE)
         const m = L.marker([p.lat, p.lng], { icon: inactiveIcon })
 
         m.on("mouseover popupopen", () => {
-          markers.forEach((mk, i) => mk.setIcon(points[i].isTo ? dropIcon(L, RED) : circleIcon(L, BLUE)))
+          markers.forEach((mk, i) =>
+            mk.setIcon(points[i].isTo ? dropIcon(L, RED) : circleIcon(L, BLUE))
+          )
           routeLine.setStyle({ opacity: 0.7 })
         })
         m.on("mouseout popupclose", () => {
-          markers.forEach((mk, i) => mk.setIcon(points[i].isTo ? dropIcon(L, GREY) : circleIcon(L, GREY)))
+          markers.forEach((mk, i) =>
+            mk.setIcon(points[i].isTo ? dropIcon(L, GREY) : circleIcon(L, GREY))
+          )
           routeLine.setStyle({ opacity: 0 })
         })
 
-        m.bindPopup(buildPopup(a), { maxWidth: 280, className: "pop-ua" })
-        m.addTo(map)
+        m.bindPopup(buildPopup(a), { maxWidth: 280 })
+
+        // Точка відправлення — в кластер, решта — напряму на карту
+        if (idx === 0) {
+          cluster.addLayer(m)
+        } else {
+          m.addTo(map)
+          layersRef.current.push(m)
+        }
         return m
       })
 
-      routeLine.addTo(map)
-      layersRef.current.push(...markers, routeLine)
+      layersRef.current.push(routeLine)
       latlngs.forEach((ll) => allPoints.push(ll))
     })
+
+    cluster.addTo(map)
+    clusterRef.current = cluster
 
     if (allPoints.length > 0) {
       map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 11 })
@@ -215,7 +279,7 @@ export default function LeafletMap({ announcements }: Props) {
             Поки що немає оголошень з координатами
           </p>
           <p style={{ fontSize: 11, color: "#9CA3AF", margin: 0, textAlign: "center", maxWidth: 220 }}>
-            Нові оголошення з&apos;являться після публікації через оновлену форму
+            Нові оголошення з'являться після публікації через оновлену форму
           </p>
         </div>
       )}

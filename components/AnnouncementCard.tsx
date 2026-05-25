@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 interface Announcement {
   _id: string
@@ -23,7 +24,6 @@ interface Announcement {
 
 interface Props {
   announcement: Announcement
-  // TODO (Фаза 1, крок 7): передавати реальний стан авторизації після впровадження Auth.js
   isLoggedIn?: boolean
 }
 
@@ -50,7 +50,6 @@ function getInitials(username: string): string {
   return username.replace("@", "").charAt(0).toUpperCase()
 }
 
-
 const DAY_LABELS: Record<string, string> = {
   mon: "Пн", tue: "Вт", wed: "Ср", thu: "Чт",
   fri: "Пт", sat: "Сб", sun: "Нд",
@@ -72,9 +71,15 @@ function formatSchedule(tripType?: string, departureDate?: string, schedule?: st
   return time.trim()
 }
 
+function seatsLabel(seats: number, role: "driver" | "passenger"): string {
+  const n = seats
+  const word = n === 1 ? "місце" : n < 5 ? "місця" : "місць"
+  return role === "driver" ? `${n} ${word}` : `${n} ${n === 1 ? "пасажир" : n < 5 ? "пасажири" : "пасажирів"}`
+}
+
 export default function AnnouncementCard({ announcement: a, isLoggedIn = false }: Props) {
   const [expanded, setExpanded] = useState(false)
-
+  const router = useRouter()
   const isDriver = a.role === "driver"
 
   return (
@@ -86,9 +91,9 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
         : { boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
       }
     >
-      {/* ── Основна частина картки ── */}
+      {/* Основна частина */}
       <div className="p-4">
-        {/* Верхній рядок: аватар + ім'я + бейдж ролі */}
+        {/* Верхній рядок */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="flex items-center gap-2 min-w-0">
             <div
@@ -126,7 +131,7 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
           )}
         </div>
 
-        {/* Мета-рядок: розклад, місця, спільнота */}
+        {/* Мета-чіпи */}
         <div className="flex flex-wrap gap-1.5 mb-2">
           {(() => {
             const sched = formatSchedule(a.tripType, a.departureDate, a.schedule, a.departureTime)
@@ -134,15 +139,15 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
               <span className="text-xs bg-[#F3F4F6] text-[#374151] px-2 py-0.5 rounded-full">&#128337; {sched}</span>
             ) : null
           })()}
-          {isDriver && a.seats != null && a.seats > 0 && (
-            <span className="text-xs bg-[#F3F4F6] text-[#374151] px-2 py-0.5 rounded-full">&#128100; {a.seats} {a.seats === 1 ? "місце" : a.seats < 5 ? "місця" : "місць"}</span>
+          {a.seats != null && a.seats > 0 && (
+            <span className="text-xs bg-[#F3F4F6] text-[#374151] px-2 py-0.5 rounded-full">&#128100; {seatsLabel(a.seats, a.role)}</span>
           )}
           {a.community && (
             <span className="text-xs bg-[#EBF2FC] text-[#3A6BBF] px-2 py-0.5 rounded-full">&#127968; {a.community}</span>
           )}
         </div>
 
-        {/* Опис (aiText) — обрізаний / повний */}
+        {/* Опис */}
         <p
           className="text-sm text-[#6B7280] leading-relaxed"
           style={expanded ? {} : {
@@ -162,16 +167,15 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
         )}
       </div>
 
-      {/* ── Розгорнута зона контакту ── */}
+      {/* Розгорнута зона контакту */}
       {expanded && (
         <div
           className="px-4 pb-4 pt-3 border-t border-[#F3F4F6]"
           onClick={(e) => e.stopPropagation()}
         >
           {!isLoggedIn ? (
-            /* Для неавторизованих — замок */
             <>
-              <div className="flex items-center gap-3 bg-[#F9FAFB] border border-dashed border-[#D1D5DB] rounded-xl p-3">
+              <div className="flex items-center gap-3 bg-[#F9FAFB] border border-dashed border-[#D1D5DB] rounded-xl p-3 mb-3">
                 <span className="text-xl">🔒</span>
                 <div>
                   <p className="text-sm font-semibold text-[#374151]">Контакт прихований</p>
@@ -179,30 +183,36 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
                 </div>
               </div>
               <button
-                className="mt-3 w-full py-3 rounded-xl text-sm font-bold text-white transition-colors"
+                className="w-full py-3 rounded-xl text-sm font-bold text-white transition-colors"
                 style={{ background: "#5B8FD9" }}
-                onClick={() => alert("Вхід через Telegram або Google — Фаза 1, крок 7")}
+                onClick={() => router.push("/login")}
               >
                 Увійти через Telegram або Google
               </button>
             </>
           ) : (
-            /* Для авторизованих — контакт */
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-[#374151]">
-                <span>✈️</span>
-                <span>Telegram: @{a.telegramUsername}</span>
-              </div>
-              <a
-                href={`https://t.me/${a.telegramUsername}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white transition-colors"
-                style={{ background: "#229ED9" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                ✈️ Написати в Telegram
-              </a>
+              {a.telegramUsername && (
+                <a
+                  href={`https://t.me/${a.telegramUsername}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white transition-colors"
+                  style={{ background: "#229ED9" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  ✈️ Написати в Telegram (@{a.telegramUsername})
+                </a>
+              )}
+              {a.phone && (
+                <a
+                  href={`tel:${a.phone}`}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-[#374151] border border-[#E5E7EB] bg-[#F9FAFB] transition-colors hover:bg-[#F3F4F6]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  📞 {a.phone}
+                </a>
+              )}
             </div>
           )}
         </div>

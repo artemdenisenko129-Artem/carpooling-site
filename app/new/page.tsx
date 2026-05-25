@@ -333,11 +333,10 @@ export default function NewAnnouncement() {
             </div>
           </div>
 
-          {/* Кількість місць — тільки для водія */}
-          {form.role === "driver" && (
-            <div>
+          {/* Кількість місць */}
+          <div>
               <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
-                Кількість місць
+                {form.role === "driver" ? "Кількість місць" : "Кількість пасажирів"}
               </label>
               <div className="flex items-center gap-3">
                 <button
@@ -359,10 +358,9 @@ export default function NewAnnouncement() {
                 >
                   +
                 </button>
-                <span className="text-xs text-[#9CA3AF]">вільних місць у машині</span>
+                <span className="text-xs text-[#9CA3AF]">{form.role === "driver" ? "вільних місць у машині" : "людей їде разом"}</span>
               </div>
-            </div>
-          )}
+          </div>
 
           {/* Телефон */}
           <div>

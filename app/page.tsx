@@ -1,7 +1,26 @@
+import { Metadata } from "next"
 import clientPromise from "../lib/db"
 import FeedPage from "../components/FeedPage"
+import { SITE } from "../lib/seo-config"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: `${SITE.name} — ${SITE.tagline}`,
+  description: SITE.description,
+  keywords: SITE.keywords.join(", "),
+  openGraph: {
+    title: SITE.name,
+    description: SITE.description,
+    locale: "uk_UA",
+    type: "website",
+    url: SITE.domain,
+    siteName: SITE.name,
+  },
+  alternates: {
+    canonical: SITE.domain,
+  },
+}
 
 async function getAnnouncements(from?: string, to?: string) {
   const client = await clientPromise

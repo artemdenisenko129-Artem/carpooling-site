@@ -2,6 +2,7 @@
 import { useState, useTransition, lazy, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useSession, signOut } from "next-auth/react"
 import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
 
@@ -75,7 +76,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
   const [view, setView] = useState<ViewMode>("list")
 
-  const isLoggedIn = false
+  const { data: session } = useSession()
+  const isLoggedIn = !!session
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -120,17 +122,18 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         {isLoggedIn ? (
           <button
             className="shrink-0 border border-[#E5E7EB] rounded-full px-4 py-2 text-sm font-medium text-[#374151] bg-[#F9FAFB] transition-colors"
+            onClick={() => signOut({ callbackUrl: "/" })}
           >
-            👤 Профіль
+            👤 {session?.user?.name?.split(" ")[0] || "Профіль"} ↩
           </button>
         ) : (
-          <button
-            className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors"
+          <Link
+            href="/login"
+            className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors no-underline"
             style={{ background: "#5B8FD9" }}
-            onClick={() => alert("Вхід через Telegram або Google — Фаза 1, крок 7")}
           >
             Увійти
-          </button>
+          </Link>
         )}
       </header>
 
@@ -221,7 +224,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border"
               style={{ background: "white", borderColor: "#E5E7EB", color: "#9CA3AF", cursor: "default" }}
               title="Увійдіть щоб використовувати фільтр"
-              onClick={() => alert("Увійдіть щоб використовувати фільтр «Моя спільнота»")}
+              onClick={() => router.push("/login")}
             >
               🏘 Спільнота 🔒
             </button>

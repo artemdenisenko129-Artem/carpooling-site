@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       ...(departureTime ? { departureTime: String(departureTime) } : {}),
       ...(phone?.trim() ? { phone: String(phone).trim() } : {}),
       ...(community?.trim() ? { community: String(community).trim() } : {}),
-      ...(role === "driver" && seats ? { seats: Math.min(8, Math.max(1, Number(seats))) } : {}),
+      ...(seats ? { seats: Math.min(8, Math.max(1, Number(seats))) } : {}),
     }
 
     const result = await db.collection("announcements").insertOne(doc)
