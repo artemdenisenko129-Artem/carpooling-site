@@ -36,7 +36,16 @@ export async function GET() {
   try {
     const client = await clientPromise
     const db = client.db("carpooling")
-    const items = await db.collection("announcements").find({ isActive: true }).sort({ createdAt: -1 }).limit(20).toArray()
+    const today = new Date().toISOString().slice(0, 10)
+    const items = await db.collection("announcements").find({
+      isActive: true,
+      $or: [
+        { tripType: "regular" },
+        { tripType: "once", departureDate: { $gte: today } },
+        { tripType: { $exists: false } },
+        { departureDate: { $exists: false } },
+      ],
+    }).sort({ createdAt: -1 }).limit(50).toArray()
     return NextResponse.json(items)
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })
@@ -60,10 +69,12 @@ export async function POST(request: Request) {
 
     const session = await getSession()
     const authorName = session?.name || null
+    const authorId = session?.id || null
 
     const doc: any = {
       telegramUsername: telegramUsername ? String(telegramUsername).replace("@", "") : "",
       ...(authorName ? { authorName } : {}),
+      ...(authorId ? { authorId } : {}),
       role,
       from: String(from),
       to: String(to),

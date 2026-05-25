@@ -21,11 +21,13 @@ interface Announcement {
   community?: string
   seats?: number
   authorName?: string
+  authorId?: string
 }
 
 interface Props {
   announcement: Announcement
   isLoggedIn?: boolean
+  currentUserId?: string
 }
 
 function formatDate(dateStr: string): string {
@@ -112,10 +114,21 @@ function ContactBlock({ contact }: { contact: string }) {
   )
 }
 
-export default function AnnouncementCard({ announcement: a, isLoggedIn = false }: Props) {
+export default function AnnouncementCard({ announcement: a, isLoggedIn = false, currentUserId }: Props) {
   const [expanded, setExpanded] = useState(false)
+  const [deleted, setDeleted] = useState(false)
   const router = useRouter()
   const isDriver = a.role === "driver"
+  const isOwner = Boolean(currentUserId && a.authorId && currentUserId === a.authorId)
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!confirm("Видалити оголошення?")) return
+    const res = await fetch(`/api/announcements/${a._id}`, { method: "DELETE" })
+    if (res.ok) setDeleted(true)
+  }
+
+  if (deleted) return null
 
   return (
     <div
@@ -151,15 +164,27 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
               <div className="text-xs text-[#9CA3AF]">{formatDate(a.createdAt)}</div>
             </div>
           </div>
-          <span
-            className="text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wide shrink-0"
-            style={isDriver
-              ? { background: "#EBF2FC", color: "#3A6BBF" }
-              : { background: "#FDECEA", color: "#E53935" }
-            }
-          >
-            {isDriver ? "Водій" : "Пасажир"}
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span
+              className="text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wide"
+              style={isDriver
+                ? { background: "#EBF2FC", color: "#3A6BBF" }
+                : { background: "#FDECEA", color: "#E53935" }
+              }
+            >
+              {isDriver ? "Водій" : "Пасажир"}
+            </span>
+            {isOwner && (
+              <button
+                onClick={handleDelete}
+                className="text-[11px] font-bold px-2 py-1 rounded-full bg-[#F3F4F6] text-[#9CA3AF] hover:bg-[#FDECEA] hover:text-[#E53935] transition-all"
+                title="Видалити оголошення"
+                aria-label="Видалити"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Маршрут */}

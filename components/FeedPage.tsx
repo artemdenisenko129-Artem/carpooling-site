@@ -10,16 +10,16 @@ const LeafletMap = lazy(() => import("./LeafletMap"))
 
 function LogoSVG() {
   return (
-    <svg width="36" height="36" viewBox="0 0 88 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M28 84 C28 60 68 62 68 44 C68 24 28 22 62 6" stroke="#1C1C2E" strokeWidth="14" strokeLinecap="round" fill="none"/>
-      <path d="M12 84 C12 60 52 62 52 44 C52 24 12 22 46 6" stroke="#5B8FD9" strokeWidth="14" strokeLinecap="round" fill="none"/>
-      <path d="M20 84 C20 60 60 62 60 44 C60 24 20 22 54 6" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/>
-      <circle cx="12" cy="73" r="11" fill="#5B8FD9"/>
-      <circle cx="12" cy="73" r="4.5" fill="white"/>
-      <path d="M5 81 L19 81 L12 90 Z" fill="#5B8FD9"/>
-      <circle cx="62" cy="10" r="9" fill="#E53935"/>
-      <circle cx="62" cy="10" r="3.5" fill="white"/>
-      <path d="M56 17 L68 17 L62 24 Z" fill="#E53935"/>
+    <svg width="36" height="36" viewBox="0 0 78 86" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M42 82 C42 58 68 60 68 42 C68 24 40 20 64 5" stroke="#1A1A2E" strokeWidth="19" strokeLinecap="round" fill="none"/>
+      <path d="M18 82 C18 58 44 60 44 42 C44 24 16 20 40 5" stroke="#0E8BDC" strokeWidth="19" strokeLinecap="round" fill="none"/>
+      <path d="M30 82 C30 58 56 60 56 42 C56 24 28 20 52 5" stroke="white" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
+      <circle cx="18" cy="69" r="12" fill="#0E8BDC"/>
+      <circle cx="18" cy="69" r="5" fill="white"/>
+      <path d="M10 78 L26 78 L18 86 Z" fill="#0E8BDC"/>
+      <circle cx="64" cy="8" r="9" fill="#E53935"/>
+      <circle cx="64" cy="8" r="3.6" fill="white"/>
+      <path d="M57 15 L71 15 L64 22 Z" fill="#E53935"/>
     </svg>
   )
 }
@@ -253,7 +253,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             </div>
           ) : (
             filtered.map((a) => (
-              <AnnouncementCard key={a._id} announcement={a} isLoggedIn={isLoggedIn} />
+              <AnnouncementCard key={a._id} announcement={a} isLoggedIn={isLoggedIn} currentUserId={user?.id} />
             ))
           )}
         </div>
