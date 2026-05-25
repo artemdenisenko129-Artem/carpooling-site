@@ -21,21 +21,41 @@ function LogoSVG() {
   )
 }
 
+function GoogleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+  )
+}
+
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") || "/"
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const scriptRef = useRef<HTMLScriptElement | null>(null)
-  const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "Poputtky_bot"
+  const errorParam  = searchParams.get("error")
 
+  const [loading, setLoading]   = useState(false)
+  const [tgLoading, setTgLoading] = useState(false)
+  const [error, setError]       = useState(errorParam ? "Помилка входу. Спробуй ще раз." : "")
+  const scriptRef = useRef<HTMLScriptElement | null>(null)
+  const botName   = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "Poputtky_bot"
+
+  // Google OAuth — редірект
+  function handleGoogleLogin() {
+    setLoading(true)
+    window.location.href = "/api/auth/google?callbackUrl=" + encodeURIComponent(callbackUrl)
+  }
+
+  // Telegram Widget
   useEffect(() => {
     ;(window as any).onTelegramAuth = async (user: Record<string, string | number>) => {
-      setLoading(true)
+      setTgLoading(true)
       setError("")
 
-      // Перетворюємо всі поля на рядки
       const creds: Record<string, string> = {}
       for (const [k, v] of Object.entries(user)) {
         creds[k] = String(v)
@@ -53,12 +73,12 @@ function LoginContent() {
           router.refresh()
         } else {
           const data = await res.json()
-          setError(data.error || "Не вдалося увійти. Спробуй ще раз.")
-          setLoading(false)
+          setError(data.error || "Не вдалося увійти через Telegram.")
+          setTgLoading(false)
         }
       } catch {
         setError("Помилка з'єднання. Спробуй ще раз.")
-        setLoading(false)
+        setTgLoading(false)
       }
     }
 
@@ -86,6 +106,7 @@ function LoginContent() {
     <div className="min-h-screen bg-[#F3F4F6] flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
 
+        {/* Лого */}
         <div className="flex flex-col items-center mb-8">
           <LogoSVG />
           <h1 className="mt-3 text-2xl font-extrabold text-[#111827] tracking-tight">
@@ -94,20 +115,43 @@ function LoginContent() {
           <p className="mt-1 text-sm text-[#6B7280]">приміські поїздки</p>
         </div>
 
+        {/* Картка */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
           <h2 className="text-lg font-bold text-[#111827] mb-1">Вхід до сервісу</h2>
-          <p className="text-sm text-[#6B7280] mb-6">
-            Щоб розмістити оголошення або побачити контакти — увійдіть через Telegram.
+          <p className="text-sm text-[#6B7280] mb-5">
+            Щоб розмістити оголошення або побачити контакти — увійдіть зручним способом.
           </p>
 
-          <div id="tg-widget-container" className="flex justify-center mb-4" style={{ minHeight: 48 }}>
-            {loading && (
+          {/* Google */}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-[#E5E7EB] bg-white text-sm font-semibold text-[#374151] transition-colors mb-3"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}
+          >
+            {loading ? (
+              <div className="w-5 h-5 rounded-full border-2 animate-spin"
+                style={{ borderColor: "#E5E7EB", borderTopColor: "#374151" }} />
+            ) : (
+              <GoogleIcon />
+            )}
+            {loading ? "Перенаправлення..." : "Увійти через Google"}
+          </button>
+
+          {/* Роздільник */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 h-px bg-[#E5E7EB]" />
+            <span className="text-xs text-[#9CA3AF]">або</span>
+            <div className="flex-1 h-px bg-[#E5E7EB]" />
+          </div>
+
+          {/* Telegram Widget */}
+          <div id="tg-widget-container" className="flex justify-center mb-2" style={{ minHeight: 48 }}>
+            {tgLoading && (
               <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-                <div
-                  className="w-4 h-4 rounded-full border-2 animate-spin"
-                  style={{ borderColor: "#5B8FD9", borderTopColor: "transparent" }}
-                />
-                Виконується вхід...
+                <div className="w-4 h-4 rounded-full border-2 animate-spin"
+                  style={{ borderColor: "#229ED9", borderTopColor: "transparent" }} />
+                Виконується вхід через Telegram...
               </div>
             )}
           </div>
@@ -116,7 +160,7 @@ function LoginContent() {
             <p className="text-xs text-[#E53935] text-center mb-3">{error}</p>
           )}
 
-          <p className="text-[11px] text-[#9CA3AF] text-center leading-relaxed">
+          <p className="text-[11px] text-[#9CA3AF] text-center leading-relaxed mt-3">
             Входячи, ви погоджуєтесь з{" "}
             <a href="#" className="underline hover:text-[#5B8FD9]">Правилами сервісу</a>{" "}
             та{" "}
