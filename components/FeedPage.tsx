@@ -26,6 +26,7 @@ function LogoSVG() {
 
 type RoleFilter = "all" | "driver" | "passenger"
 type TypeFilter = "all" | "roundTrip" | "oneWay"
+type ScopeFilter = "all" | "suburban" | "intercity"
 type ViewMode = "list" | "map"
 
 interface Announcement {
@@ -55,6 +56,7 @@ interface Announcement {
   returnTime?: string
   returnDate?: string
   _matchedAsReturn?: boolean
+  tripScope?: "suburban" | "intercity"
 }
 
 interface Props {
@@ -72,6 +74,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [view, setView] = useState<ViewMode>("list")
 
   const { user, isLoggedIn } = useSession()
@@ -97,6 +100,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
     if (roleFilter === "passenger" && a.role !== "passenger") return false
     if (typeFilter === "roundTrip" && !a.isRoundTrip)         return false
     if (typeFilter === "oneWay"    &&  a.isRoundTrip)         return false
+    if (scopeFilter === "suburban"  && a.tripScope !== "suburban")  return false
+    if (scopeFilter === "intercity" && a.tripScope !== "intercity") return false
     return true
   })
 
@@ -202,6 +207,18 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
             >
               {t === "roundTrip" ? "↩ Туди-назад" : "→ В один бік"}
+            </button>
+          ))}
+          {(["suburban", "intercity"] as ScopeFilter[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => setScopeFilter(scopeFilter === s ? "all" : s)}
+              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+              style={scopeFilter === s
+                ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
+                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
+            >
+              {s === "suburban" ? "🏘 Приміська" : "🛣 Міжміська"}
             </button>
           ))}
           {isLoggedIn ? (

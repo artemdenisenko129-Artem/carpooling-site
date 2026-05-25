@@ -51,6 +51,7 @@ export default function NewAnnouncement() {
     seats: 1,
     returnTime: "",
     returnDate: "",
+    tripScope: "suburban" as "suburban" | "intercity",
   })
 
   // Підставляємо Telegram username із сесії якщо є
