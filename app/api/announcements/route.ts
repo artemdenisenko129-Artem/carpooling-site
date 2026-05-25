@@ -50,7 +50,7 @@ export async function POST(request: Request) {
             tripType, departureDate, schedule, departureTime,
             phone, community, seats } = body
 
-    if (!telegramUsername || !role || !from || !to || !aiText) {
+    if (!role || !from || !to || !aiText) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     const db = client.db("carpooling")
 
     const doc: any = {
-      telegramUsername: String(telegramUsername).replace("@", ""),
+      telegramUsername: telegramUsername ? String(telegramUsername).replace("@", "") : "",
       role,
       from: String(from),
       to: String(to),
