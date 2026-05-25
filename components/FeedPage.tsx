@@ -10,17 +10,16 @@ const LeafletMap = lazy(() => import("./LeafletMap"))
 
 function LogoSVG() {
   return (
-    <svg width="36" height="36" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8"
-        stroke="#1a1a2e" strokeWidth="13" strokeLinecap="round" fill="none" />
-      <path d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8"
-        stroke="#5B8FD9" strokeWidth="8" strokeLinecap="round" fill="none" />
-      <circle cx="42" cy="8" r="9" fill="#E53935" />
-      <circle cx="42" cy="8" r="3.5" fill="white" />
-      <path d="M42 17 L38.5 23 L45.5 23 Z" fill="#E53935" />
-      <circle cx="18" cy="70" r="9" fill="#5B8FD9" />
-      <circle cx="18" cy="70" r="3.5" fill="white" />
-      <path d="M18 79 L14.5 85 L21.5 85 Z" fill="#5B8FD9" />
+    <svg width="36" height="36" viewBox="0 0 88 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M28 84 C28 60 68 62 68 44 C68 24 28 22 62 6" stroke="#1C1C2E" strokeWidth="14" strokeLinecap="round" fill="none"/>
+      <path d="M12 84 C12 60 52 62 52 44 C52 24 12 22 46 6" stroke="#5B8FD9" strokeWidth="14" strokeLinecap="round" fill="none"/>
+      <path d="M20 84 C20 60 60 62 60 44 C60 24 20 22 54 6" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/>
+      <circle cx="12" cy="73" r="11" fill="#5B8FD9"/>
+      <circle cx="12" cy="73" r="4.5" fill="white"/>
+      <path d="M5 81 L19 81 L12 90 Z" fill="#5B8FD9"/>
+      <circle cx="62" cy="10" r="9" fill="#E53935"/>
+      <circle cx="62" cy="10" r="3.5" fill="white"/>
+      <path d="M56 17 L68 17 L62 24 Z" fill="#E53935"/>
     </svg>
   )
 }

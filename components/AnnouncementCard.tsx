@@ -47,7 +47,8 @@ function formatDate(dateStr: string): string {
 }
 
 function getInitials(username: string): string {
-  return username.replace("@", "").charAt(0).toUpperCase()
+  const clean = (username || "").replace("@", "").trim()
+  return clean ? clean.charAt(0).toUpperCase() : "?"
 }
 
 const DAY_LABELS: Record<string, string> = {
@@ -75,6 +76,38 @@ function seatsLabel(seats: number, role: "driver" | "passenger"): string {
   const n = seats
   const word = n === 1 ? "місце" : n < 5 ? "місця" : "місць"
   return role === "driver" ? `${n} ${word}` : `${n} ${n === 1 ? "пасажир" : n < 5 ? "пасажири" : "пасажирів"}`
+}
+
+function ContactBlock({ contact }: { contact: string }) {
+  const [copied, setCopied] = useState(false)
+  function handleCopy(e: React.MouseEvent) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(contact).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  const isPhone = /^\+?\d[\d\s\-()+]{6,}$/.test(contact.trim())
+  return (
+    <div
+      className="flex items-center justify-between gap-2 w-full py-3 px-4 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB]"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <span className="text-sm font-semibold text-[#374151] truncate">
+        {isPhone ? "\u{1F4DE} " : "\u{1F4AC} "}{contact}
+      </span>
+      <button
+        onClick={handleCopy}
+        className="shrink-0 text-xs font-bold px-3 py-1 rounded-full transition-all"
+        style={copied
+          ? { background: "#D1FAE5", color: "#065F46" }
+          : { background: "#EBF2FC", color: "#3A6BBF" }
+        }
+      >
+        {copied ? "\u2713 \u0421\u043a\u043e\u043f\u0456\u044e\u0432\u0430\u043d\u043e" : "\u041a\u043e\u043f\u0456\u044e\u0432\u0430\u0442\u0438"}
+      </button>
+    </div>
+  )
 }
 
 export default function AnnouncementCard({ announcement: a, isLoggedIn = false }: Props) {
@@ -106,7 +139,9 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
               {getInitials(a.telegramUsername)}
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-[#111827] truncate">@{a.telegramUsername}</div>
+              <div className="text-sm font-semibold text-[#111827] truncate">
+                {a.telegramUsername ? `@${a.telegramUsername}` : "Анонімно"}
+              </div>
               <div className="text-xs text-[#9CA3AF]">{formatDate(a.createdAt)}</div>
             </div>
           </div>
@@ -205,13 +240,10 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
                 </a>
               )}
               {a.phone && (
-                <a
-                  href={`tel:${a.phone}`}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-[#374151] border border-[#E5E7EB] bg-[#F9FAFB] transition-colors hover:bg-[#F3F4F6]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  📞 {a.phone}
-                </a>
+                <ContactBlock contact={a.phone} />
+              )}
+              {!a.telegramUsername && !a.phone && (
+                <p className="text-sm text-[#9CA3AF] text-center py-2">Автор не вказав контакт</p>
               )}
             </div>
           )}
