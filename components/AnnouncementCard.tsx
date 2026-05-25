@@ -20,6 +20,7 @@ interface Announcement {
   phone?: string
   community?: string
   seats?: number
+  authorName?: string
 }
 
 interface Props {
@@ -46,7 +47,8 @@ function formatDate(dateStr: string): string {
   }
 }
 
-function getInitials(username: string): string {
+function getInitials(username: string, authorName?: string): string {
+  if (authorName) return authorName.charAt(0).toUpperCase()
   const clean = (username || "").replace("@", "").trim()
   return clean ? clean.charAt(0).toUpperCase() : "?"
 }
@@ -136,11 +138,15 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false }
                 : { background: "#FDECEA", color: "#E53935" }
               }
             >
-              {getInitials(a.telegramUsername)}
+              {getInitials(a.telegramUsername, a.authorName)}
             </div>
             <div className="min-w-0">
               <div className="text-sm font-semibold text-[#111827] truncate">
-                {a.telegramUsername ? `@${a.telegramUsername}` : "Анонімно"}
+                {a.telegramUsername
+                  ? `@${a.telegramUsername}`
+                  : a.authorName
+                  ? a.authorName
+                  : "Анонімно"}
               </div>
               <div className="text-xs text-[#9CA3AF]">{formatDate(a.createdAt)}</div>
             </div>

@@ -1,5 +1,6 @@
 ﻿import { NextResponse } from "next/server"
 import clientPromise from "../../../lib/db"
+import { getSession } from "../../../lib/session"
 
 const BOT_TOKEN = process.env.BOT_TOKEN
 const CHANNEL_ID = process.env.CHANNEL_ID
@@ -57,8 +58,12 @@ export async function POST(request: Request) {
     const client = await clientPromise
     const db = client.db("carpooling")
 
+    const session = await getSession()
+    const authorName = session?.name || null
+
     const doc: any = {
       telegramUsername: telegramUsername ? String(telegramUsername).replace("@", "") : "",
+      ...(authorName ? { authorName } : {}),
       role,
       from: String(from),
       to: String(to),

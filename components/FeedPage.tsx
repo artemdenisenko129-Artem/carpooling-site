@@ -51,6 +51,7 @@ interface Announcement {
   phone?: string
   community?: string
   seats?: number
+  authorName?: string
 }
 
 interface Props {
