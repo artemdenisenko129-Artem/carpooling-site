@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import crypto from "crypto"
 import { signToken } from "../../../../lib/jwt"
-import { cookies } from "next/headers"
 
 function verifyTelegramHash(data: Record<string, string>): boolean {
   const botToken = process.env.BOT_TOKEN
@@ -22,17 +21,33 @@ function verifyTelegramHash(data: Record<string, string>): boolean {
   return expectedHash === hash
 }
 
+function popupHtml(dest: string): string {
+  const safe = dest.replace(/"/g, "&quot;")
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><script>
+try {
+  if (window.opener && !window.opener.closed) {
+    window.opener.location.href = "${safe}";
+    window.close();
+  } else {
+    window.location.href = "${safe}";
+  }
+} catch(e) {
+  window.location.href = "${safe}";
+}
+<\/script></body></html>`
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const params = Object.fromEntries(url.searchParams.entries())
 
-  // Витягуємо наш параметр next, щоб не заважав верифікації
   const next = params.next || "/"
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { next: _next, ...telegramData } = params
 
   if (!verifyTelegramHash(telegramData)) {
-    return NextResponse.redirect(new URL("/login?error=tg_hash", url.origin))
+    const errHtml = popupHtml(url.origin + "/login?error=tg_hash")
+    return new Response(errHtml, { headers: { "Content-Type": "text/html; charset=utf-8" } })
   }
 
   const name = [telegramData.first_name, telegramData.last_name]
@@ -47,14 +62,22 @@ export async function GET(request: Request) {
     exp: Date.now() + 30 * 24 * 60 * 60 * 1000,
   })
 
-  const cookieStore = await cookies()
-  cookieStore.set("session", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60,
-    path: "/",
-  })
+  const dest = new URL(next, url.origin).toString()
+  const html = popupHtml(dest)
 
-  return NextResponse.redirect(new URL(next, url.origin))
+  const cookieValue = [
+    `session=${token}`,
+    "Path=/",
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+    `Max-Age=${30 * 24 * 60 * 60}`,
+  ].join("; ")
+
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Set-Cookie": cookieValue,
+    },
+  })
 }
