@@ -1,3 +1,5 @@
-// Middleware вимкнено — захист /new реалізовано через app/new/layout.tsx
-export function middleware() {}
+import { NextResponse } from "next/server"
+export function middleware() {
+  return NextResponse.next()
+}
 export const config = { matcher: [] }
