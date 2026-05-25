@@ -52,6 +52,9 @@ interface Announcement {
   community?: string
   seats?: number
   authorName?: string
+  returnTime?: string
+  returnDate?: string
+  _matchedAsReturn?: boolean
 }
 
 interface Props {

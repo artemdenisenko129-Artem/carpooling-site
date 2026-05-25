@@ -22,6 +22,9 @@ interface Announcement {
   seats?: number
   authorName?: string
   authorId?: string
+  returnTime?: string
+  returnDate?: string
+  _matchedAsReturn?: boolean
 }
 
 interface Props {
@@ -205,11 +208,21 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
               <span className="text-xs bg-[#F3F4F6] text-[#374151] px-2 py-0.5 rounded-full">&#128337; {sched}</span>
             ) : null
           })()}
+          {a.isRoundTrip && a.returnTime && (
+            <span className="text-xs bg-[#D1FAE5] text-[#065F46] px-2 py-0.5 rounded-full">
+              &#8617; назад {a.returnDate
+                ? (() => { try { return new Date(a.returnDate).toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) + " " } catch { return a.returnDate + " " } })()
+                : ""}о {a.returnTime}
+            </span>
+          )}
           {a.seats != null && a.seats > 0 && (
             <span className="text-xs bg-[#F3F4F6] text-[#374151] px-2 py-0.5 rounded-full">&#128100; {seatsLabel(a.seats, a.role)}</span>
           )}
           {a.community && (
             <span className="text-xs bg-[#EBF2FC] text-[#3A6BBF] px-2 py-0.5 rounded-full">&#127968; {a.community}</span>
+          )}
+          {a._matchedAsReturn && (
+            <span className="text-xs bg-[#FEF3C7] text-[#92400E] px-2 py-0.5 rounded-full">&#8617; знайдено як зворотній</span>
           )}
         </div>
 

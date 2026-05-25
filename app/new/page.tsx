@@ -49,6 +49,8 @@ export default function NewAnnouncement() {
     phone: "",
     community: "",
     seats: 1,
+    returnTime: "",
+    returnDate: "",
   })
 
   // Підставляємо Telegram username із сесії якщо є
@@ -258,24 +260,55 @@ export default function NewAnnouncement() {
           </div>
 
           {/* Туди-назад */}
-          <label className="flex items-center gap-3 cursor-pointer select-none">
-            <div
-              className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0"
-              style={form.isRoundTrip
-                ? { background: "#5B8FD9", borderColor: "#5B8FD9" }
-                : { background: "white", borderColor: "#D1D5DB" }
-              }
-            >
-              {form.isRoundTrip && <span className="text-white text-xs font-bold">✓</span>}
-            </div>
-            <input
-              type="checkbox"
-              className="sr-only"
-              checked={form.isRoundTrip}
-              onChange={(e) => setForm({ ...form, isRoundTrip: e.target.checked })}
-            />
-            <span className="text-sm text-[#374151]">Поїздка туди-назад (↩ обидва напрямки)</span>
-          </label>
+          <div>
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <div
+                className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0"
+                style={form.isRoundTrip
+                  ? { background: "#5B8FD9", borderColor: "#5B8FD9" }
+                  : { background: "white", borderColor: "#D1D5DB" }
+                }
+              >
+                {form.isRoundTrip && <span className="text-white text-xs font-bold">✓</span>}
+              </div>
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={form.isRoundTrip}
+                onChange={(e) => setForm({ ...form, isRoundTrip: e.target.checked })}
+              />
+              <span className="text-sm text-[#374151]">Поїздка туди-назад (↩ обидва напрямки)</span>
+            </label>
+
+            {form.isRoundTrip && (
+              <div className="mt-3 rounded-xl border border-[#D1FAE5] bg-[#F0FDF4] p-4 flex flex-col gap-3">
+                <p className="text-xs font-semibold text-[#065F46] uppercase tracking-wide">↩ Зворотній маршрут</p>
+                <div className="flex items-center gap-3">
+                  <label className="text-xs text-[#6B7280] shrink-0">Час виїзду назад:</label>
+                  <input
+                    type="time"
+                    value={form.returnTime}
+                    onChange={(e) => setForm({ ...form, returnTime: e.target.value })}
+                    className="flex-1 bg-white border border-[#D1FAE5] rounded-xl px-4 py-2.5 text-sm text-[#111827] outline-none transition-colors focus:border-[#10B981]"
+                  />
+                </div>
+                {form.tripType === "once" && (
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs text-[#6B7280] shrink-0">Дата повернення:</label>
+                    <input
+                      type="date"
+                      value={form.returnDate}
+                      onChange={(e) => setForm({ ...form, returnDate: e.target.value })}
+                      className="flex-1 bg-white border border-[#D1FAE5] rounded-xl px-4 py-2.5 text-sm text-[#111827] outline-none transition-colors focus:border-[#10B981]"
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-[#6B7280]">
+                  Зворотній маршрут: <span className="font-medium text-[#111827]">{form.to || "Куди"} → {form.from || "Звідки"}</span>
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Помилка */}
           {error && (
