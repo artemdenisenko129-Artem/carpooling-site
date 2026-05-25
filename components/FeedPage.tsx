@@ -10,24 +10,24 @@ const LeafletMap = lazy(() => import("./LeafletMap"))
 
 function LogoSVG() {
   return (
-    <svg width="36" height="36" viewBox="0 0 78 86" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M42 82 C42 58 68 60 68 42 C68 24 40 20 64 5" stroke="#1A1A2E" strokeWidth="19" strokeLinecap="round" fill="none"/>
-      <path d="M18 82 C18 58 44 60 44 42 C44 24 16 20 40 5" stroke="#0E8BDC" strokeWidth="19" strokeLinecap="round" fill="none"/>
-      <path d="M30 82 C30 58 56 60 56 42 C56 24 28 20 52 5" stroke="white" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
-      <circle cx="18" cy="69" r="12" fill="#0E8BDC"/>
-      <circle cx="18" cy="69" r="5" fill="white"/>
-      <path d="M10 78 L26 78 L18 86 Z" fill="#0E8BDC"/>
-      <circle cx="64" cy="8" r="9" fill="#E53935"/>
-      <circle cx="64" cy="8" r="3.6" fill="white"/>
-      <path d="M57 15 L71 15 L64 22 Z" fill="#E53935"/>
+    <svg width="28" height="36" viewBox="0 0 170 215" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M100 5C126 5 135 50 121 97C107 144 107 188 121 205" stroke="#1A1A2E" strokeWidth="42" strokeLinecap="round"/>
+      <path d="M58 5C84 5 93 50 79 97C65 144 65 188 79 205" stroke="#5B8FD9" strokeWidth="42" strokeLinecap="round"/>
+      <path d="M79 5C105 5 114 50 100 97C86 144 86 188 100 205" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+      <path d="M58 2C41 2 28 16 28 33C28 51 58 79 58 79C58 79 88 51 88 33C88 16 75 2 58 2Z" fill="#E53935"/>
+      <circle cx="58" cy="31" r="13" fill="white"/>
+      <circle cx="58" cy="31" r="5.5" fill="#CC1111"/>
+      <path d="M103 143C91 143 80 153 80 165C80 178 103 201 103 201C103 201 126 178 126 165C126 153 115 143 103 143Z" fill="#5B8FD9"/>
+      <circle cx="103" cy="163" r="11" fill="white"/>
+      <circle cx="103" cy="163" r="4.5" fill="#3A6BBF"/>
     </svg>
   )
 }
 
 type RoleFilter = "all" | "driver" | "passenger"
 type TypeFilter = "all" | "roundTrip" | "oneWay"
-type ScopeFilter = "all" | "suburban" | "intercity"
 type ViewMode = "list" | "map"
+type ScopeFilter = "all" | "suburban" | "intercity"
 
 interface Announcement {
   _id: string
@@ -74,8 +74,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
-  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [view, setView] = useState<ViewMode>("list")
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
 
   const { user, isLoggedIn } = useSession()
 
@@ -100,7 +100,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
     if (roleFilter === "passenger" && a.role !== "passenger") return false
     if (typeFilter === "roundTrip" && !a.isRoundTrip)         return false
     if (typeFilter === "oneWay"    &&  a.isRoundTrip)         return false
-    if (scopeFilter === "suburban"  && a.tripScope !== "suburban")  return false
+    if (scopeFilter === "suburban"  && a.tripScope === "intercity") return false
     if (scopeFilter === "intercity" && a.tripScope !== "intercity") return false
     return true
   })
@@ -209,7 +209,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               {t === "roundTrip" ? "↩ Туди-назад" : "→ В один бік"}
             </button>
           ))}
-          {(["suburban", "intercity"] as ScopeFilter[]).map((s) => (
+          {(["suburban", "intercity"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setScopeFilter(scopeFilter === s ? "all" : s)}
