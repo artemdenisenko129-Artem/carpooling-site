@@ -71,8 +71,14 @@ export async function POST(request: Request) {
     const authorName = session?.name || null
     const authorId = session?.id || null
 
+    // Security: if logged in via Telegram, always use the verified session username.
+    // If logged in via Google, allow the manually entered username (for contact purposes).
+    const resolvedTelegramUsername = session?.telegramUsername
+      ? session.telegramUsername.replace("@", "")
+      : (telegramUsername ? String(telegramUsername).replace("@", "") : "")
+
     const doc: any = {
-      telegramUsername: telegramUsername ? String(telegramUsername).replace("@", "") : "",
+      telegramUsername: resolvedTelegramUsername,
       ...(authorName ? { authorName } : {}),
       ...(authorId ? { authorId } : {}),
       role,

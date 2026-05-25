@@ -125,20 +125,34 @@ export default function NewAnnouncement() {
             <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
               Telegram username
             </label>
-            <input
-              type="text"
-              placeholder="@your_username"
-              value={form.telegramUsername}
-              onChange={(e) => {
-                let val = e.target.value
-                if (val && !val.startsWith("@")) val = "@" + val
-                setForm({ ...form, telegramUsername: val })
-              }}
-              className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
-            />
-            <p className="text-xs text-[#9CA3AF] mt-1">
-              Потрібен хоча б один спосіб зв&apos;язку — Telegram або поле нижче
-            </p>
+            {user?.telegramUsername ? (
+              <div className="flex items-center gap-3 bg-[#F0FDF4] border border-[#D1FAE5] rounded-xl px-4 py-3">
+                <span className="text-lg">✓</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[#065F46] truncate">
+                    @{user.telegramUsername.replace("@", "")}
+                  </p>
+                  <p className="text-xs text-[#6B7280]">Верифіковано через Telegram</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  placeholder="@your_username"
+                  value={form.telegramUsername}
+                  onChange={(e) => {
+                    let val = e.target.value
+                    if (val && !val.startsWith("@")) val = "@" + val
+                    setForm({ ...form, telegramUsername: val })
+                  }}
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9]"
+                />
+                <p className="text-xs text-[#9CA3AF] mt-1">
+                  Потрібен хоча б один спосіб зв&apos;язку — Telegram або поле нижче
+                </p>
+              </>
+            )}
           </div>
 
           {/* Роль */}

@@ -38,9 +38,8 @@ function LoginContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/"
   const errorParam  = searchParams.get("error")
 
-  const [loading, setLoading]   = useState(false)
-  const [tgLoading, setTgLoading] = useState(false)
-  const [error, setError]       = useState(errorParam ? "Помилка входу. Спробуй ще раз." : "")
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState(errorParam ? "Помилка входу. Спробуй ще раз." : "")
   const scriptRef = useRef<HTMLScriptElement | null>(null)
   const botName   = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "Poputtky_bot"
 
@@ -50,43 +49,16 @@ function LoginContent() {
     window.location.href = "/api/auth/google?callbackUrl=" + encodeURIComponent(callbackUrl)
   }
 
-  // Telegram Widget
+  // Telegram Widget — redirect mode (надійніше ніж JS callback)
   useEffect(() => {
-    ;(window as any).onTelegramAuth = async (user: Record<string, string | number>) => {
-      setTgLoading(true)
-      setError("")
-
-      const creds: Record<string, string> = {}
-      for (const [k, v] of Object.entries(user)) {
-        creds[k] = String(v)
-      }
-
-      try {
-        const res = await fetch("/api/auth/telegram", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(creds),
-        })
-
-        if (res.ok) {
-          router.push(callbackUrl)
-          router.refresh()
-        } else {
-          const data = await res.json()
-          setError(data.error || "Не вдалося увійти через Telegram.")
-          setTgLoading(false)
-        }
-      } catch {
-        setError("Помилка з'єднання. Спробуй ще раз.")
-        setTgLoading(false)
-      }
-    }
+    const authUrl = window.location.origin +
+      "/api/auth/telegram-callback?next=" + encodeURIComponent(callbackUrl)
 
     const script = document.createElement("script")
     script.src = "https://telegram.org/js/telegram-widget.js?22"
     script.setAttribute("data-telegram-login", botName)
     script.setAttribute("data-size", "large")
-    script.setAttribute("data-onauth", "onTelegramAuth(user)")
+    script.setAttribute("data-auth-url", authUrl)
     script.setAttribute("data-request-access", "write")
     script.async = true
     scriptRef.current = script
@@ -98,9 +70,8 @@ function LoginContent() {
       if (scriptRef.current?.parentNode) {
         scriptRef.current.parentNode.removeChild(scriptRef.current)
       }
-      delete (window as any).onTelegramAuth
     }
-  }, [callbackUrl, botName, router])
+  }, [callbackUrl, botName])
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] flex flex-col items-center justify-center px-4">
@@ -146,15 +117,7 @@ function LoginContent() {
           </div>
 
           {/* Telegram Widget */}
-          <div id="tg-widget-container" className="flex justify-center mb-2" style={{ minHeight: 48 }}>
-            {tgLoading && (
-              <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-                <div className="w-4 h-4 rounded-full border-2 animate-spin"
-                  style={{ borderColor: "#229ED9", borderTopColor: "transparent" }} />
-                Виконується вхід через Telegram...
-              </div>
-            )}
-          </div>
+          <div id="tg-widget-container" className="flex justify-center mb-2" style={{ minHeight: 48 }} />
 
           {error && (
             <p className="text-xs text-[#E53935] text-center mb-3">{error}</p>
