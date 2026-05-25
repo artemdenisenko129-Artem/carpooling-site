@@ -1,2 +1,2 @@
-﻿import dns from 'dns'
-dns.setServers(["8.8.8.8", "8.8.4.4"])
+// instrumentation.ts — залишено порожнім
+export async function register() {}
