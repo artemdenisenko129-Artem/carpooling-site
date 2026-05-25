@@ -1,7 +1,4 @@
-﻿import type { NextConfig } from "next";
-import dns from "dns";
-
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {};
 
