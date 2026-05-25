@@ -1,5 +1,2 @@
-import { NextResponse } from "next/server"
-export function middleware() {
-  return NextResponse.next()
-}
+// Middleware не використовується — захист маршрутів через серверні layouts
 export const config = { matcher: [] }

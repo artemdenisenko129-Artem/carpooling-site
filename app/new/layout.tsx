@@ -1,4 +1,4 @@
-import { auth } from "../../lib/auth"
+import { getSession } from "../../lib/session"
 import { redirect } from "next/navigation"
 
 export default async function NewLayout({
@@ -6,11 +6,9 @@ export default async function NewLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
-
-  if (!session?.user) {
+  const session = await getSession()
+  if (!session) {
     redirect("/login?callbackUrl=/new")
   }
-
   return <>{children}</>
 }

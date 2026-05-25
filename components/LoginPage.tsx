@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Suspense } from "react"
@@ -29,34 +28,40 @@ function LoginContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const scriptRef = useRef<HTMLScriptElement | null>(null)
-  const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "poputky_bot"
+  const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "Poputtky_bot"
 
   useEffect(() => {
-    // Глобальний callback — Telegram widget викличе цю функцію після авторизації
     ;(window as any).onTelegramAuth = async (user: Record<string, string | number>) => {
       setLoading(true)
       setError("")
 
-      // Перетворюємо числові поля на рядки (Telegram повертає id і auth_date як числа)
+      // Перетворюємо всі поля на рядки
       const creds: Record<string, string> = {}
       for (const [k, v] of Object.entries(user)) {
         creds[k] = String(v)
       }
 
-      const result = await signIn("telegram", {
-        ...creds,
-        redirect: false,
-      })
+      try {
+        const res = await fetch("/api/auth/telegram", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds),
+        })
 
-      if (result?.ok) {
-        router.push(callbackUrl)
-      } else {
-        setError("Не вдалося увійти. Спробуй ще раз.")
+        if (res.ok) {
+          router.push(callbackUrl)
+          router.refresh()
+        } else {
+          const data = await res.json()
+          setError(data.error || "Не вдалося увійти. Спробуй ще раз.")
+          setLoading(false)
+        }
+      } catch {
+        setError("Помилка з'єднання. Спробуй ще раз.")
         setLoading(false)
       }
     }
 
-    // Завантажуємо офіційний Telegram Login Widget
     const script = document.createElement("script")
     script.src = "https://telegram.org/js/telegram-widget.js?22"
     script.setAttribute("data-telegram-login", botName)
@@ -75,13 +80,12 @@ function LoginContent() {
       }
       delete (window as any).onTelegramAuth
     }
-  }, [callbackUrl, botName])
+  }, [callbackUrl, botName, router])
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
 
-        {/* Лого */}
         <div className="flex flex-col items-center mb-8">
           <LogoSVG />
           <h1 className="mt-3 text-2xl font-extrabold text-[#111827] tracking-tight">
@@ -90,23 +94,17 @@ function LoginContent() {
           <p className="mt-1 text-sm text-[#6B7280]">приміські поїздки</p>
         </div>
 
-        {/* Картка */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
           <h2 className="text-lg font-bold text-[#111827] mb-1">Вхід до сервісу</h2>
           <p className="text-sm text-[#6B7280] mb-6">
             Щоб розмістити оголошення або побачити контакти — увійдіть через Telegram.
           </p>
 
-          {/* Telegram Widget контейнер */}
-          <div
-            id="tg-widget-container"
-            className="flex justify-center mb-4"
-            style={{ minHeight: 48 }}
-          >
+          <div id="tg-widget-container" className="flex justify-center mb-4" style={{ minHeight: 48 }}>
             {loading && (
               <div className="flex items-center gap-2 text-sm text-[#6B7280]">
                 <div
-                  className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
+                  className="w-4 h-4 rounded-full border-2 animate-spin"
                   style={{ borderColor: "#5B8FD9", borderTopColor: "transparent" }}
                 />
                 Виконується вхід...

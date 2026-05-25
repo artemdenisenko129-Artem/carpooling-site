@@ -2,7 +2,7 @@
 import { useState, useTransition, lazy, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useSession, signOut } from "next-auth/react"
+import { useSession, logout } from "../lib/useSession"
 import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
 
@@ -11,14 +11,10 @@ const LeafletMap = lazy(() => import("./LeafletMap"))
 function LogoSVG() {
   return (
     <svg width="36" height="36" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path
-        d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8"
-        stroke="#1a1a2e" strokeWidth="13" strokeLinecap="round" fill="none"
-      />
-      <path
-        d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8"
-        stroke="#5B8FD9" strokeWidth="8" strokeLinecap="round" fill="none"
-      />
+      <path d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8"
+        stroke="#1a1a2e" strokeWidth="13" strokeLinecap="round" fill="none" />
+      <path d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8"
+        stroke="#5B8FD9" strokeWidth="8" strokeLinecap="round" fill="none" />
       <circle cx="42" cy="8" r="9" fill="#E53935" />
       <circle cx="42" cy="8" r="3.5" fill="white" />
       <path d="M42 17 L38.5 23 L45.5 23 Z" fill="#E53935" />
@@ -69,21 +65,19 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const [isPending, startTransition] = useTransition()
 
   const [fromVal, setFromVal] = useState(initialFrom)
-  const [toVal, setToVal] = useState(initialTo)
+  const [toVal, setToVal]   = useState(initialTo)
 
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
-
   const [view, setView] = useState<ViewMode>("list")
 
-  const { data: session } = useSession()
-  const isLoggedIn = !!session
+  const { user, isLoggedIn } = useSession()
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const params = new URLSearchParams()
     if (fromVal.trim()) params.set("from", fromVal.trim())
-    if (toVal.trim()) params.set("to", toVal.trim())
+    if (toVal.trim())   params.set("to",   toVal.trim())
     startTransition(() => {
       router.push(params.toString() ? "/?" + params.toString() : "/")
     })
@@ -96,10 +90,10 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   }
 
   const filtered = announcements.filter((a) => {
-    if (roleFilter === "driver" && a.role !== "driver") return false
+    if (roleFilter === "driver"    && a.role !== "driver")    return false
     if (roleFilter === "passenger" && a.role !== "passenger") return false
-    if (typeFilter === "roundTrip" && !a.isRoundTrip) return false
-    if (typeFilter === "oneWay" && a.isRoundTrip) return false
+    if (typeFilter === "roundTrip" && !a.isRoundTrip)         return false
+    if (typeFilter === "oneWay"    &&  a.isRoundTrip)         return false
     return true
   })
 
@@ -108,6 +102,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
 
+      {/* Хедер */}
       <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
           <LogoSVG />
@@ -122,9 +117,9 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         {isLoggedIn ? (
           <button
             className="shrink-0 border border-[#E5E7EB] rounded-full px-4 py-2 text-sm font-medium text-[#374151] bg-[#F9FAFB] transition-colors"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={logout}
           >
-            👤 {session?.user?.name?.split(" ")[0] || "Профіль"} ↩
+            👤 {user?.name?.split(" ")[0] || "Профіль"} ↩
           </button>
         ) : (
           <Link
@@ -137,6 +132,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         )}
       </header>
 
+      {/* Пошук */}
       <div className="bg-white border-b border-[#E5E7EB] px-4 pt-3 pb-0">
         <form onSubmit={handleSearch}>
           <div
@@ -174,17 +170,13 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             </button>
           </div>
           {isSearchActive && (
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-xs text-[#9CA3AF] underline mb-2 block"
-            >
+            <button type="button" onClick={handleReset} className="text-xs text-[#9CA3AF] underline mb-2 block">
               Скинути пошук
             </button>
           )}
         </form>
 
-        <div className="flex gap-2 pb-3 overflow-x-auto scrollbar-none" style={{ scrollbarWidth: "none" }}>
+        <div className="flex gap-2 pb-3 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {(["all", "driver", "passenger"] as RoleFilter[]).map((r) => (
             <button
               key={r}
@@ -192,8 +184,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
               style={roleFilter === r
                 ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }
-              }
+                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
             >
               {r === "all" ? "🚘 Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
             </button>
@@ -205,8 +196,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
               style={typeFilter === t
                 ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }
-              }
+                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
             >
               {t === "roundTrip" ? "↩ Туди-назад" : "→ В один бік"}
             </button>
@@ -222,8 +212,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
           ) : (
             <button
               className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border"
-              style={{ background: "white", borderColor: "#E5E7EB", color: "#9CA3AF", cursor: "default" }}
-              title="Увійдіть щоб використовувати фільтр"
+              style={{ background: "white", borderColor: "#E5E7EB", color: "#9CA3AF" }}
               onClick={() => router.push("/login")}
             >
               🏘 Спільнота 🔒
@@ -232,6 +221,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       </div>
 
+      {/* Перемикач список/карта */}
       <div className="bg-white border-b border-[#E5E7EB] flex">
         {(["list", "map"] as ViewMode[]).map((v) => (
           <button
@@ -240,14 +230,14 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
             style={view === v
               ? { color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }
-              : { color: "#9CA3AF", borderColor: "transparent" }
-            }
+              : { color: "#9CA3AF", borderColor: "transparent" }}
           >
             {v === "list" ? "☰ Список" : "🗺 Карта"}
           </button>
         ))}
       </div>
 
+      {/* Список */}
       {view === "list" && (
         <div className="px-4 pt-3 pb-32 flex flex-col gap-3">
           <p className="text-xs text-[#9CA3AF]">
@@ -263,69 +253,47 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             </div>
           ) : (
             filtered.map((a) => (
-              <AnnouncementCard
-                key={a._id}
-                announcement={a}
-                isLoggedIn={isLoggedIn}
-              />
+              <AnnouncementCard key={a._id} announcement={a} isLoggedIn={isLoggedIn} />
             ))
           )}
         </div>
       )}
 
+      {/* Карта */}
       {view === "map" && (
         <div className="px-4 pt-3 pb-32">
           <Suspense fallback={
-            <div
-              className="rounded-2xl border border-[#E5E7EB] flex items-center justify-center text-[#9CA3AF] text-sm"
-              style={{ height: 400, background: "#EBF2FC" }}
-            >
+            <div className="rounded-2xl border border-[#E5E7EB] flex items-center justify-center text-[#9CA3AF] text-sm"
+              style={{ height: 400, background: "#EBF2FC" }}>
               Завантаження карти...
             </div>
           }>
             <LeafletMap announcements={filtered} />
           </Suspense>
-          {filtered.filter(a => a.fromLat != null).length === 0 && (
-            <p className="mt-3 text-xs text-center text-[#9CA3AF]">
-              Нові оголошення з'являться на карті після публікації через оновлену форму
-            </p>
-          )}
           <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
-            <span className="flex items-center gap-1">
-              <span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення
-            </span>
-            <span className="flex items-center gap-1">
-              <span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення
-            </span>
+            <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
+            <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
           </div>
         </div>
       )}
 
-      <footer
-        className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]"
-        style={{ marginBottom: 80 }}
-      >
+      {/* Футер */}
+      <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
         <p className="mb-2">Попутки UA © 2026</p>
         <div className="flex gap-4 justify-center flex-wrap">
           <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Правила сайту</a>
           <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Про сервіс</a>
-          <a
-            href="https://t.me/poputtky_ua"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors"
-          >Telegram-канал
-          </a>
+          <a href="https://t.me/poputtky_ua" target="_blank" rel="noopener noreferrer"
+            className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Telegram-канал</a>
         </div>
       </footer>
 
+      {/* Кнопка створити оголошення */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pb-5 pt-3 pointer-events-none"
-        style={{ background: "linear-gradient(to top, rgba(243,244,246,1) 60%, rgba(243,244,246,0))" }}
-      >
+        style={{ background: "linear-gradient(to top, rgba(243,244,246,1) 60%, rgba(243,244,246,0))" }}>
         <Link
           href="/new"
-          className="pointer-events-auto block text-cente
-r-2xl text-base font-bold text-white no-underline transition-colors"
+          className="pointer-events-auto block text-center rounded-2xl text-base font-bold text-white no-underline transition-colors py-4"
           style={{ background: "#5B8FD9", boxShadow: "0 4px 20px rgba(91,143,217,0.4)" }}
         >
           + Створити оголошення
