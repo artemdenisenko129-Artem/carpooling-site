@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Suspense } from "react"
@@ -38,40 +38,21 @@ function LoginContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/"
   const errorParam  = searchParams.get("error")
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState(errorParam ? "Помилка входу. Спробуй ще раз." : "")
-  const scriptRef = useRef<HTMLScriptElement | null>(null)
-  const botName   = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "Poputtky_bot"
+  const [loading, setLoading]   = useState(false)
+  const [tgLoading, setTgLoading] = useState(false)
+  const [error, setError]       = useState(errorParam ? "Помилка входу. Спробуй ще раз." : "")
 
-  // Google OAuth — редірект
+  // Google OAuth — повний редирект сторінки
   function handleGoogleLogin() {
     setLoading(true)
     window.location.href = "/api/auth/google?callbackUrl=" + encodeURIComponent(callbackUrl)
   }
 
-  // Telegram Widget — redirect mode (надійніше ніж JS callback)
-  useEffect(() => {
-    const authUrl = window.location.origin +
-      "/api/auth/telegram-callback?next=" + encodeURIComponent(callbackUrl)
-
-    const script = document.createElement("script")
-    script.src = "https://telegram.org/js/telegram-widget.js?22"
-    script.setAttribute("data-telegram-login", botName)
-    script.setAttribute("data-size", "large")
-    script.setAttribute("data-auth-url", authUrl)
-    script.setAttribute("data-request-access", "write")
-    script.async = true
-    scriptRef.current = script
-
-    const container = document.getElementById("tg-widget-container")
-    if (container) container.appendChild(script)
-
-    return () => {
-      if (scriptRef.current?.parentNode) {
-        scriptRef.current.parentNode.removeChild(scriptRef.current)
-      }
-    }
-  }, [callbackUrl, botName])
+  // Telegram OAuth — повний редирект сторінки (без попапу, надійно)
+  function handleTelegramLogin() {
+    setTgLoading(true)
+    window.location.href = "/api/auth/telegram-url?next=" + encodeURIComponent(callbackUrl)
+  }
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] flex flex-col items-center justify-center px-4">
@@ -116,8 +97,23 @@ function LoginContent() {
             <div className="flex-1 h-px bg-[#E5E7EB]" />
           </div>
 
-          {/* Telegram Widget */}
-          <div id="tg-widget-container" className="flex justify-center mb-2" style={{ minHeight: 48 }} />
+          {/* Telegram — кнопка з повним редиректом */}
+          <button
+            onClick={handleTelegramLogin}
+            disabled={tgLoading}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold text-white transition-colors"
+            style={{ background: "#229ED9", boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }}
+          >
+            {tgLoading ? (
+              <div className="w-5 h-5 rounded-full border-2 animate-spin"
+                style={{ borderColor: "rgba(255,255,255,0.4)", borderTopColor: "white" }} />
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.16 14.002l-2.95-.924c-.64-.203-.654-.64.136-.949l11.526-4.443c.534-.194 1.001.13.69.562z"/>
+              </svg>
+            )}
+            {tgLoading ? "Перенаправлення..." : "Увійти через Telegram"}
+          </button>
 
           {error && (
             <p className="text-xs text-[#E53935] text-center mb-3">{error}</p>
