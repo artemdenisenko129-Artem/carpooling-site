@@ -321,22 +321,3 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
     </div>
   )
 }
-am-канал</a>
-        </div>
-      </footer>
-
-      {/* Кнопка створити оголошення */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pb-5 pt-3 pointer-events-none"
-        style={{ background: "linear-gradient(to top, rgba(243,244,246,1) 60%, rgba(243,244,246,0))" }}>
-        <Link
-          href="/new"
-          className="pointer-events-auto block text-center rounded-2xl text-base font-bold text-white no-underline transition-colors py-4"
-          style={{ background: "#5B8FD9", boxShadow: "0 4px 20px rgba(91,143,217,0.4)" }}
-        >
-          + Створити оголошення
-        </Link>
-      </div>
-
-    </div>
-  )
-}
