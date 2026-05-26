@@ -127,12 +127,17 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
 
   async function handleDelete(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!confirm("Видалити оголошення?")) return
+    if (!confirm("Приховати оголошення? Воно буде збережено в архіві — за прямим посиланням воно залишиться доступним.")) return
     const res = await fetch(`/api/announcements/${a._id}`, { method: "DELETE" })
     if (res.ok) setDeleted(true)
   }
 
-  if (deleted) return null
+  if (deleted) return (
+    <div className="bg-[#F9FAFB] rounded-2xl border border-dashed border-[#D1D5DB] px-4 py-3 text-center">
+      <p className="text-sm text-[#6B7280]">✓ Оголошення приховано з стрічки</p>
+      <p className="text-xs text-[#9CA3AF] mt-0.5">Збережено в архіві — за прямим посиланням воно залишається доступним</p>
+    </div>
+  )
 
   return (
     <div

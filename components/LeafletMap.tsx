@@ -66,17 +66,16 @@ export default function LeafletMap({ announcements }: Props) {
         zoom: 6,
         zoomControl: true,
         scrollWheelZoom: false,
+        // Scroll zoom disabled — карта всередині сторінки,
+        // користуйся кнопками +/- або Ctrl+колесо
       })
-
-      // Один крок колеса = один рівень зуму, без накопичення
-      let wheelCooldown = false
-      containerRef.current!.addEventListener("wheel", (e: WheelEvent) => {
-        e.preventDefault()
-        if (wheelCooldown) return
-        wheelCooldown = true
-        setTimeout(() => { wheelCooldown = false }, 300)
-        if (e.deltaY < 0) map.zoomIn(1)
-        else map.zoomOut(1)
+      // Ctrl+wheel — zoom (щоб не зoomувати при звичайній прокрутці)
+      containerRef.current.addEventListener("wheel", (e: WheelEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault()
+          if (e.deltaY < 0) map.zoomIn(1)
+          else map.zoomOut(1)
+        }
       }, { passive: false })
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -198,6 +197,20 @@ export default function LeafletMap({ announcements }: Props) {
         dashArray: "7 6",
       }).addTo(map)
 
+      // Зворотній маршрут (туди-назад) — окрема пунктирна лінія
+      if (a.isRoundTrip && a.toLat != null && a.toLng != null) {
+        const returnLatlngs: [number, number][] = [
+          [a.toLat!, a.toLng!],
+          ...(a.waypoints ?? []).reverse().map((w): [number, number] => [w.lat, w.lng]),
+          [a.fromLat!, a.fromLng!],
+        ]
+        const returnLine = L.polyline(returnLatlngs, {
+          color: a.role === "driver" ? "#5B8FD9" : "#F97316",
+          weight: 2, opacity: 0.35, dashArray: "4 8",
+        }).addTo(map)
+        layersRef.current.push(returnLine)
+      }
+
       const inactiveColor = a.role === "driver" ? "#93B4E8" : "#FDBA74"
       const markers = points.map((p, idx) => {
         const icon = p.isTo ? dropIcon(L, inactiveColor) : circleIcon(L, inactiveColor, a.role)
@@ -212,12 +225,7 @@ export default function LeafletMap({ announcements }: Props) {
           activate(L, markers, routeLine, a)
         })
 
-        if (idx === 0) {
-          cluster.addLayer(m)
-        } else {
-          m.addTo(map)
-          layersRef.current.push(m)
-        }
+        cluster.addLayer(m)
         return m
       })
 
@@ -286,18 +294,13 @@ export default function LeafletMap({ announcements }: Props) {
 
       {!hasAny && (
         <div style={{
-          position: "absolute", inset: 0, zIndex: 500,
-          display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", gap: 8, pointerEvents: "none",
-          background: "rgba(235,242,252,0.85)", borderRadius: 16,
+          position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)",
+          zIndex: 600, pointerEvents: "none",
+          background: "rgba(17,24,39,0.65)", borderRadius: 20,
+          padding: "5px 14px", fontSize: 11, color: "white",
+          whiteSpace: "nowrap",
         }}>
-          <div style={{ fontSize: 32 }}>🗺</div>
-          <p style={{ fontSize: 13, color: "#6B7280", fontWeight: 600, margin: 0 }}>
-            Поки що немає оголошень з координатами
-          </p>
-          <p style={{ fontSize: 11, color: "#9CA3AF", margin: 0, textAlign: "center", maxWidth: 220 }}>
-            Нові оголошення з'являться після публікації через оновлену форму
-          </p>
+          🗺 Немає оголошень з координатами — карта для нових
         </div>
       )}
 

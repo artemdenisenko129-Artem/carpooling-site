@@ -25,7 +25,6 @@ function LogoSVG() {
 }
 
 type RoleFilter = "all" | "driver" | "passenger"
-type TypeFilter = "all" | "roundTrip" | "oneWay"
 type ViewMode = "list" | "map"
 type ScopeFilter = "all" | "suburban" | "intercity"
 
@@ -73,7 +72,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const [toVal, setToVal]   = useState(initialTo)
 
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
   const [view, setView] = useState<ViewMode>("list")
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
 
@@ -98,8 +96,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const filtered = announcements.filter((a) => {
     if (roleFilter === "driver"    && a.role !== "driver")    return false
     if (roleFilter === "passenger" && a.role !== "passenger") return false
-    if (typeFilter === "roundTrip" && !a.isRoundTrip)         return false
-    if (typeFilter === "oneWay"    &&  a.isRoundTrip)         return false
     if (scopeFilter === "suburban"  && a.tripScope === "intercity") return false
     if (scopeFilter === "intercity" && a.tripScope !== "intercity") return false
     return true
@@ -197,18 +193,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               {r === "all" ? "🚘 Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
             </button>
           ))}
-          {(["roundTrip", "oneWay"] as TypeFilter[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTypeFilter(typeFilter === t ? "all" : t)}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-              style={typeFilter === t
-                ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-            >
-              {t === "roundTrip" ? "↩ Туди-назад" : "→ В один бік"}
-            </button>
-          ))}
+
           {(["suburban", "intercity"] as const).map((s) => (
             <button
               key={s}
@@ -218,7 +203,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
                 : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
             >
-              {s === "suburban" ? "🏘 Приміська" : "🛣 Міжміська"}
+              {s === "suburban" ? "🏘 Приміська/Міська" : "🛣 Міжміська"}
             </button>
           ))}
           {isLoggedIn ? (
