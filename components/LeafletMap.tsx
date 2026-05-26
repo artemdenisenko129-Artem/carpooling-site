@@ -1,4 +1,7 @@
 "use client"
+import "leaflet/dist/leaflet.css"
+import "leaflet.markercluster/dist/MarkerCluster.css"
+import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { useEffect, useRef, useState } from "react"
 
 interface Waypoint {
@@ -57,28 +60,6 @@ export default function LeafletMap({ announcements }: Props) {
         iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       })
-
-      if (!document.getElementById("leaflet-css")) {
-        const link = document.createElement("link")
-        link.id = "leaflet-css"
-        link.rel = "stylesheet"
-        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        document.head.appendChild(link)
-      }
-      if (!document.getElementById("markercluster-css")) {
-        const link = document.createElement("link")
-        link.id = "markercluster-css"
-        link.rel = "stylesheet"
-        link.href = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-        document.head.appendChild(link)
-      }
-      if (!document.getElementById("markercluster-default-css")) {
-        const link = document.createElement("link")
-        link.id = "markercluster-default-css"
-        link.rel = "stylesheet"
-        link.href = "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-        document.head.appendChild(link)
-      }
 
       const map = L.map(containerRef.current, {
         center: [49.5, 31.5],
