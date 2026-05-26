@@ -69,12 +69,29 @@ export default function LeafletMap({ announcements }: Props) {
         // Scroll zoom disabled — карта всередині сторінки,
         // користуйся кнопками +/- або Ctrl+колесо
       })
-      // Ctrl+wheel — zoom (щоб не зoomувати при звичайній прокрутці)
-      containerRef.current.addEventListener("wheel", (e: WheelEvent) => {
+      // Scroll без Ctrl → показуємо підказку; Ctrl+scroll → зум
+      let hintTimeout: ReturnType<typeof setTimeout> | null = null
+      const container = containerRef.current
+      const hintEl = document.createElement("div")
+      hintEl.style.cssText = [
+        "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)",
+        "background:rgba(17,24,39,0.75);color:white;border-radius:12px",
+        "padding:8px 18px;font-size:13px;pointer-events:none",
+        "opacity:0;transition:opacity 0.2s;z-index:900;white-space:nowrap",
+      ].join(";")
+      hintEl.textContent = "Ctrl + прокрутка — зум карти"
+      container.parentElement!.style.position = "relative"
+      container.parentElement!.appendChild(hintEl)
+
+      container.addEventListener("wheel", (e: WheelEvent) => {
         if (e.ctrlKey || e.metaKey) {
           e.preventDefault()
           if (e.deltaY < 0) map.zoomIn(1)
           else map.zoomOut(1)
+        } else {
+          hintEl.style.opacity = "1"
+          if (hintTimeout) clearTimeout(hintTimeout)
+          hintTimeout = setTimeout(() => { hintEl.style.opacity = "0" }, 1500)
         }
       }, { passive: false })
 
@@ -201,7 +218,7 @@ export default function LeafletMap({ announcements }: Props) {
       if (a.isRoundTrip && a.toLat != null && a.toLng != null) {
         const returnLatlngs: [number, number][] = [
           [a.toLat!, a.toLng!],
-          ...(a.waypoints ?? []).reverse().map((w): [number, number] => [w.lat, w.lng]),
+          ...[...(a.waypoints ?? [])].reverse().map((w): [number, number] => [w.lat, w.lng]),
           [a.fromLat!, a.fromLng!],
         ]
         const returnLine = L.polyline(returnLatlngs, {
