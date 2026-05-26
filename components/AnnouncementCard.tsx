@@ -26,6 +26,7 @@ interface Announcement {
   returnDate?: string
   _matchedAsReturn?: boolean
   tripScope?: "suburban" | "intercity"
+  waypoints?: { name: string; lat?: number; lng?: number }[]
 }
 
 interface Props {
@@ -197,8 +198,14 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
         </div>
 
         {/* Маршрут */}
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span className="text-base font-extrabold text-[#111827] leading-tight">{a.from}</span>
+          {(a.waypoints ?? []).map((wp, i) => (
+            <span key={i} className="flex items-center gap-2">
+              <span className="text-[#9CA3AF] text-sm shrink-0">→</span>
+              <span className="text-base font-extrabold text-[#111827] leading-tight">{wp.name}</span>
+            </span>
+          ))}
           <span className="text-[#9CA3AF] text-sm shrink-0">→</span>
           <span className="text-base font-extrabold text-[#111827] leading-tight">{a.to}</span>
           {a.isRoundTrip && (

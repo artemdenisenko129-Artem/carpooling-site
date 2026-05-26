@@ -11,6 +11,8 @@ interface Props {
   toName:   string
   onFromChange: (name: string, lat: number, lng: number) => void
   onToChange:   (name: string, lat: number, lng: number) => void
+  /** Зовнішній тригер активації режиму (від кнопок 📍 у формі) */
+  mapTrigger?: { mode: "from" | "to"; t: number } | null
 }
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
@@ -37,6 +39,7 @@ export default function MapPicker({
   fromLat, fromLng, toLat, toLng,
   fromName, toName,
   onFromChange, onToChange,
+  mapTrigger,
 }: Props) {
   const containerRef   = useRef<HTMLDivElement>(null)
   const mapRef         = useRef<any>(null)
@@ -54,6 +57,11 @@ export default function MapPicker({
   // Завжди актуальні refs — без stale closure
   useEffect(() => { onFromRef.current = onFromChange }, [onFromChange])
   useEffect(() => { onToRef.current  = onToChange   }, [onToChange])
+
+  // Зовнішній тригер від кнопок 📍 у формі
+  useEffect(() => {
+    if (mapTrigger) setMode(mapTrigger.mode)
+  }, [mapTrigger])
 
   const setMode = useCallback((m: "from" | "to") => {
     modeRef.current = m

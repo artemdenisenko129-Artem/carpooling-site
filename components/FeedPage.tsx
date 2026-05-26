@@ -27,6 +27,7 @@ function LogoSVG() {
 type RoleFilter = "all" | "driver" | "passenger"
 type ViewMode = "list" | "map"
 type ScopeFilter = "all" | "suburban" | "intercity"
+type TripTypeFilter = "all" | "regular"
 
 interface Announcement {
   _id: string
@@ -74,6 +75,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
   const [view, setView] = useState<ViewMode>("list")
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
+  const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
 
   const { user, isLoggedIn } = useSession()
 
@@ -98,6 +100,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
     if (roleFilter === "passenger" && a.role !== "passenger") return false
     if (scopeFilter === "suburban"  && a.tripScope === "intercity") return false
     if (scopeFilter === "intercity" && a.tripScope !== "intercity") return false
+    if (tripTypeFilter === "regular" && a.tripType !== "regular") return false
     return true
   })
 
@@ -206,6 +209,16 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               {s === "suburban" ? "🏘 Приміська/Міська" : "🛣 Міжміська"}
             </button>
           ))}
+          <button
+            onClick={() => setTripTypeFilter(tripTypeFilter === "regular" ? "all" : "regular")}
+            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+            style={tripTypeFilter === "regular"
+              ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
+              : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
+          >
+            🔄 Регулярно
+          </button>
+
           {isLoggedIn ? (
             <button
               className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
@@ -290,6 +303,25 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
           <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Про сервіс</a>
           <a href="https://t.me/poputtky_ua" target="_blank" rel="noopener noreferrer"
             className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Telegram-канал</a>
+        </div>
+      </footer>
+
+      {/* Кнопка створити оголошення */}
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pb-5 pt-3 pointer-events-none"
+        style={{ background: "linear-gradient(to top, rgba(243,244,246,1) 60%, rgba(243,244,246,0))" }}>
+        <Link
+          href="/new"
+          className="pointer-events-auto block text-center rounded-2xl text-base font-bold text-white no-underline transition-colors py-4"
+          style={{ background: "#5B8FD9", boxShadow: "0 4px 20px rgba(91,143,217,0.4)" }}
+        >
+          + Створити оголошення
+        </Link>
+      </div>
+
+    </div>
+  )
+}
+am-канал</a>
         </div>
       </footer>
 
