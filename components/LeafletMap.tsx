@@ -65,6 +65,8 @@ export default function LeafletMap({ announcements }: Props) {
         center: [49.5, 31.5],
         zoom: 6,
         zoomControl: true,
+        wheelDebounceTime: 150,
+        wheelPxPerZoomLevel: 120,
       })
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -99,9 +101,9 @@ export default function LeafletMap({ announcements }: Props) {
 
   function deactivate() {
     if (!activeRef.current) return
-    const GREY = "#9CA3AF"
-    activeRef.current.markers.forEach((mk, i) => {
-      mk.setIcon(mk._isTo ? dropIcon(mk._L, GREY) : circleIcon(mk._L, GREY))
+    activeRef.current.markers.forEach((mk) => {
+      const inactive = mk._role === "driver" ? "#93B4E8" : "#FDBA74"
+      mk.setIcon(mk._isTo ? dropIcon(mk._L, inactive) : circleIcon(mk._L, inactive, mk._role))
     })
     activeRef.current.line.setStyle({ opacity: 0 })
     activeRef.current = null
@@ -109,20 +111,23 @@ export default function LeafletMap({ announcements }: Props) {
 
   function activate(L: any, markers: any[], line: any, ann: Announcement) {
     deactivate()
-    const BLUE = "#5B8FD9"
-    const RED  = "#E53935"
+    const startColor = ann.role === "driver" ? "#5B8FD9" : "#F97316"
+    const endColor   = ann.role === "driver" ? "#E53935" : "#DC2626"
     markers.forEach((mk) => {
-      mk.setIcon(mk._isTo ? dropIcon(L, RED) : circleIcon(L, BLUE))
+      mk.setIcon(mk._isTo ? dropIcon(L, endColor) : circleIcon(L, startColor, ann.role))
     })
     line.setStyle({ opacity: 0.75 })
     activeRef.current = { markers, line }
     setSheet(ann)
   }
 
-  function circleIcon(L: any, color: string) {
+  function circleIcon(L: any, color: string, role?: string) {
+    const isPassenger = role === "passenger"
     return L.divIcon({
       className: "",
-      html: `<div style="width:13px;height:13px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></div>`,
+      html: isPassenger
+        ? `<div style="width:13px;height:13px;background:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.35);transform:rotate(45deg)"></div>`
+        : `<div style="width:13px;height:13px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></div>`,
       iconSize: [13, 13],
       iconAnchor: [6, 6],
     })
@@ -145,8 +150,6 @@ export default function LeafletMap({ announcements }: Props) {
     if (clusterRef.current) { try { map.removeLayer(clusterRef.current) } catch {} }
     deactivate()
     setSheet(null)
-
-    const GREY = "#9CA3AF"
 
     const withCoords = announcements.filter(
       (a) => a.fromLat != null && a.fromLng != null && a.toLat != null && a.toLng != null
@@ -185,11 +188,13 @@ export default function LeafletMap({ announcements }: Props) {
         dashArray: "7 6",
       }).addTo(map)
 
+      const inactiveColor = a.role === "driver" ? "#93B4E8" : "#FDBA74"
       const markers = points.map((p, idx) => {
-        const icon = p.isTo ? dropIcon(L, GREY) : circleIcon(L, GREY)
+        const icon = p.isTo ? dropIcon(L, inactiveColor) : circleIcon(L, inactiveColor, a.role)
         const m = L.marker([p.lat, p.lng], { icon })
         // зберігаємо метадані на маркері
         m._isTo = !!p.isTo
+        m._role = a.role
         m._L = L
 
         m.on("click", (e: any) => {

@@ -1,9 +1,11 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, lazy, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import PlaceAutocomplete from "../../components/PlaceAutocomplete"
 import { useSession } from "../../lib/useSession"
+
+const MapPicker = lazy(() => import("../../components/MapPicker"))
 
 function LogoSVG() {
   return (
@@ -229,6 +231,30 @@ export default function NewAnnouncement() {
             </div>
           </div>
 
+
+          {/* Карта для вибору точок */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-[#374151] uppercase tracking-wide">
+                Або постав точки на карті
+              </label>
+              <span className="text-xs text-[#9CA3AF]">для внутрішньоміських маршрутів</span>
+            </div>
+            <Suspense fallback={
+              <div className="rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-center text-xs text-[#9CA3AF]" style={{ height: 100 }}>
+                Завантаження карти...
+              </div>
+            }>
+              <MapPicker
+                fromLat={form.fromLat}
+                fromLng={form.fromLng}
+                toLat={form.toLat}
+                toLng={form.toLng}
+                onFromChange={(name, lat, lng) => setForm(f => ({ ...f, from: name, fromLat: lat, fromLng: lng }))}
+                onToChange={(name, lat, lng) => setForm(f => ({ ...f, to: name, toLat: lat, toLng: lng }))}
+              />
+            </Suspense>
+          </div>
 
           {/* Проміжні зупинки */}
           <div>
