@@ -65,9 +65,19 @@ export default function LeafletMap({ announcements }: Props) {
         center: [49.5, 31.5],
         zoom: 6,
         zoomControl: true,
-        wheelDebounceTime: 150,
-        wheelPxPerZoomLevel: 120,
+        scrollWheelZoom: false,
       })
+
+      // Один крок колеса = один рівень зуму, без накопичення
+      let wheelCooldown = false
+      containerRef.current!.addEventListener("wheel", (e: WheelEvent) => {
+        e.preventDefault()
+        if (wheelCooldown) return
+        wheelCooldown = true
+        setTimeout(() => { wheelCooldown = false }, 300)
+        if (e.deltaY < 0) map.zoomIn(1)
+        else map.zoomOut(1)
+      }, { passive: false })
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "&copy; OpenStreetMap contributors",

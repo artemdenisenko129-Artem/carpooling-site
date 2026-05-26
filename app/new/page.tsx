@@ -250,6 +250,8 @@ export default function NewAnnouncement() {
                 fromLng={form.fromLng}
                 toLat={form.toLat}
                 toLng={form.toLng}
+                fromName={form.from}
+                toName={form.to}
                 onFromChange={(name, lat, lng) => setForm(f => ({ ...f, from: name, fromLat: lat, fromLng: lng }))}
                 onToChange={(name, lat, lng) => setForm(f => ({ ...f, to: name, toLat: lat, toLng: lng }))}
               />
