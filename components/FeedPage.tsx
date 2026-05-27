@@ -77,6 +77,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const [view, setView] = useState<ViewMode>("list")
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
+  const [mapEverShown, setMapEverShown] = useState(false)
 
   const { user, isLoggedIn } = useSession()
 
@@ -250,7 +251,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         {(["list", "map"] as ViewMode[]).map((v) => (
           <button
             key={v}
-            onClick={() => setView(v)}
+            onClick={() => { setView(v); if (v === "map") setMapEverShown(true) }}
             className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
             style={view === v
               ? { color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }
@@ -283,14 +284,16 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* Карта — завжди в DOM, показуємо/ховаємо через CSS */}
-      <div className="px-4 pt-3 pb-32" style={{ display: view === "map" ? "block" : "none" }}>
-        <LeafletMap announcements={filtered} visible={view === "map"} />
-        <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
-          <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
-          <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
+      {/* Карта — монтується при першому кліку, потім залишається в DOM */}
+      {mapEverShown && (
+        <div className="px-4 pt-3 pb-32" style={{ display: view === "map" ? "block" : "none" }}>
+          <LeafletMap announcements={filtered} visible={view === "map"} />
+          <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
+            <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
+            <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Футер */}
       <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
@@ -311,7 +314,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
           className="pointer-events-auto block text-center rounded-2xl text-base font-bold text-white no-underline transition-colors py-4"
           style={{ background: "#5B8FD9", boxShadow: "0 4px 20px rgba(91,143,217,0.4)" }}
         >
-          + Створити оголошення
+          + Ð¡ÑÐ²Ð¾ÑÐ¸ÑÐ¸ Ð¾Ð³Ð¾Ð»Ð¾ÑÐµÐ½Ð½Ñ
         </Link>
       </div>
 
