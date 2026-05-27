@@ -28,10 +28,9 @@ interface Announcement {
 
 interface Props {
   announcements: Announcement[]
-  visible?: boolean
 }
 
-export default function LeafletMap({ announcements, visible = true }: Props) {
+export default function LeafletMap({ announcements }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const layersRef = useRef<any[]>([])
@@ -41,13 +40,6 @@ export default function LeafletMap({ announcements, visible = true }: Props) {
 
   const [sheet, setSheet] = useState<Announcement | null>(null)
   const [locating, setLocating] = useState(false)
-
-  // When container becomes visible, fix tile layout
-  useEffect(() => {
-    if (visible && mapRef.current) {
-      setTimeout(() => mapRef.current?.invalidateSize(), 50)
-    }
-  }, [visible])
 
   useEffect(() => {
     if (typeof window === "undefined" || !containerRef.current) return

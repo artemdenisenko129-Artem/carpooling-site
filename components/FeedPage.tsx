@@ -2,12 +2,11 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import dynamic from "next/dynamic"
 import { useSession, logout } from "../lib/useSession"
 import AnnouncementCard from "./AnnouncementCard"
+import LeafletMap from "./LeafletMap"
 import PlaceAutocomplete from "./PlaceAutocomplete"
 
-const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
 function LogoSVG() {
   return (
@@ -283,17 +282,16 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* Карта — монтується одразу, щоб Leaflet ініціалізувався у видимому контейнері */}
-      <div
-        className="px-4 pt-3 pb-32"
-        style={view !== "map" ? { position: "absolute", top: "-9999px", left: 0, right: 0, pointerEvents: "none" } : undefined}
-      >
-        <LeafletMap announcements={filtered} visible={view === "map"} />
-        <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
-          <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
-          <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
+      {/* Карта — монтується лише коли активна вкладка, але CSS вже в globals.css */}
+      {view === "map" && (
+        <div className="px-4 pt-3 pb-32">
+          <LeafletMap announcements={filtered} />
+          <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
+            <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
+            <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Футер */}
       <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
