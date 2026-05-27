@@ -122,12 +122,17 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </Link>
 
         {isLoggedIn ? (
-          <button
-            className="shrink-0 border border-[#E5E7EB] rounded-full px-4 py-2 text-sm font-medium text-[#374151] bg-[#F9FAFB] transition-colors"
-            onClick={logout}
-          >
-            👤 {user?.name?.split(" ")[0] || "Профіль"} ↩
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-sm font-medium text-[#374151]">
+              👤 {user?.name?.split(" ")[0] || "Профіль"}
+            </span>
+            <button
+              className="border border-[#E5E7EB] rounded-full px-3 py-1.5 text-xs font-medium text-[#6B7280] bg-[#F9FAFB] transition-colors hover:border-[#E53935] hover:text-[#E53935]"
+              onClick={logout}
+            >
+              Вийти
+            </button>
+          </div>
         ) : (
           <Link
             href="/login"

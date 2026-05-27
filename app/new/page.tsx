@@ -76,6 +76,8 @@ export default function NewAnnouncement() {
     }
   }, [user])
 
+  const [waypointTriggerIdx, setWaypointTriggerIdx] = useState<number | null>(null)
+
   function activateMap(mode: "from" | "to") {
     setMapTrigger({ mode, t: Date.now() })
     setTimeout(() => {
@@ -243,6 +245,15 @@ export default function NewAnnouncement() {
                     inputClassName={inputCls}
                   />
                 </div>
+                <button type="button"
+                  onClick={() => {
+                    setWaypointTriggerIdx(idx)
+                    setTimeout(() => mapSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80)
+                  }}
+                  title="Вибрати на карті"
+                  className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+                  style={{ background: "#EBF2FC", color: "#3A6BBF", fontSize: 14 }}
+                >📍</button>
                 <button type="button"
                   onClick={() => setForm(f => ({ ...f, waypoints: f.waypoints.filter((_, i) => i !== idx) }))}
                   className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-[#9CA3AF] hover:text-[#E53935] hover:bg-[#FDECEA] transition-all"
