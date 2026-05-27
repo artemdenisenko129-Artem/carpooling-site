@@ -1,9 +1,6 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import "leaflet/dist/leaflet.css"
-import "leaflet.markercluster/dist/MarkerCluster.css"
-import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -12,12 +9,12 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Попутки UA — приміські щоденні поїздки",
-  description: "Сервіс пошуку попутників для щоденних приміських поїздок. Знайди водія або пасажира на своєму маршруті.",
-  keywords: "попутники, попутчики, блаблакар, приміські поїздки, Київ, Ірпінь, Буча, Бровари, Вишгород",
+  title: "Poputtky UA",
+  description: "Servis poshuku poputnykiv dlya shchodennykh prymiskykh poyizdok.",
+  keywords: "poputnyky, blablakar, prymiske, Kyiv, Irpin",
   openGraph: {
-    title: "Попутки UA",
-    description: "Щоденні приміські поїздки — знайди попутника поряд",
+    title: "Poputtky UA",
+    description: "Shchodenni prymiske poyizdky",
     locale: "uk_UA",
     type: "website",
   },
@@ -30,6 +27,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="uk" className={inter.variable}>
+      <head>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+      </head>
       <body className="min-h-full">
         {children}
       </body>

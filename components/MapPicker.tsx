@@ -1,5 +1,4 @@
 "use client"
-import "leaflet/dist/leaflet.css"
 import { useEffect, useRef, useState, useCallback } from "react"
 
 interface Props {
