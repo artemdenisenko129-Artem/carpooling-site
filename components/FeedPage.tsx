@@ -1,11 +1,12 @@
 "use client"
-import { useState, useTransition } from "react"
+import { useState, useTransition, lazy, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useSession, logout } from "../lib/useSession"
 import AnnouncementCard from "./AnnouncementCard"
-import LeafletMap from "./LeafletMap"
 import PlaceAutocomplete from "./PlaceAutocomplete"
+
+const LeafletMap = lazy(() => import("./LeafletMap"))
 
 
 function LogoSVG() {
@@ -282,10 +283,17 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* Карта — монтується лише коли активна вкладка, але CSS вже в globals.css */}
+      {/* Карта */}
       {view === "map" && (
         <div className="px-4 pt-3 pb-32">
-          <LeafletMap announcements={filtered} />
+          <Suspense fallback={
+            <div className="rounded-2xl border border-[#E5E7EB] flex items-center justify-center text-[#9CA3AF] text-sm"
+              style={{ height: 400, background: "#EBF2FC" }}>
+              Завантаження карти...
+            </div>
+          }>
+            <LeafletMap announcements={filtered} />
+          </Suspense>
           <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
             <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
             <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
