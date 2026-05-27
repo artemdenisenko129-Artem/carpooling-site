@@ -286,7 +286,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
       {/* Карта — монтується одразу, щоб Leaflet ініціалізувався у видимому контейнері */}
       <div
         className="px-4 pt-3 pb-32"
-        style={view !== "map" ? { position: "absolute", top: "-9999px", left: 0, right: 0, visibility: "hidden", pointerEvents: "none" } : undefined}
+        style={view !== "map" ? { position: "absolute", top: "-9999px", left: 0, right: 0, pointerEvents: "none" } : undefined}
       >
         <LeafletMap announcements={filtered} visible={view === "map"} />
         <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
