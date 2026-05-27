@@ -75,7 +75,12 @@ export default async function Home({
   searchParams: Promise<{ from?: string; to?: string }>
 }) {
   const params = await searchParams
-  const announcements = await getAnnouncements(params.from, params.to)
+  let announcements: Awaited<ReturnType<typeof getAnnouncements>> = []
+  try {
+    announcements = await getAnnouncements(params.from, params.to)
+  } catch (_) {
+    // DB unavailable - show empty feed instead of server error
+  }
 
   return (
     <FeedPage
