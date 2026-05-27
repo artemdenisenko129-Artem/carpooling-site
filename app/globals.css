@@ -43,4 +43,9 @@ html, body {
 ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
 
 /* ── Selection ── */
-::selectio
+::selection { background: #5B8FD9; color: white; }
+
+/* ── Autocomplete spinner ── */
+@keyframes spin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}

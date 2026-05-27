@@ -77,7 +77,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const [view, setView] = useState<ViewMode>("list")
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
-  const [mapEverShown, setMapEverShown] = useState(false)
 
   const { user, isLoggedIn } = useSession()
 
@@ -251,7 +250,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         {(["list", "map"] as ViewMode[]).map((v) => (
           <button
             key={v}
-            onClick={() => { setView(v); if (v === "map") setMapEverShown(true) }}
+            onClick={() => setView(v)}
             className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
             style={view === v
               ? { color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }
@@ -284,16 +283,17 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* Карта — монтується при першому кліку, потім залишається в DOM */}
-      {mapEverShown && (
-        <div className="px-4 pt-3 pb-32" style={{ display: view === "map" ? "block" : "none" }}>
-          <LeafletMap announcements={filtered} visible={view === "map"} />
-          <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
-            <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
-            <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
-          </div>
+      {/* Карта — монтується одразу, щоб Leaflet ініціалізувався у видимому контейнері */}
+      <div
+        className="px-4 pt-3 pb-32"
+        style={view !== "map" ? { position: "absolute", top: "-9999px", left: 0, right: 0, visibility: "hidden", pointerEvents: "none" } : undefined}
+      >
+        <LeafletMap announcements={filtered} visible={view === "map"} />
+        <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
+          <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
+          <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
         </div>
-      )}
+      </div>
 
       {/* Футер */}
       <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
