@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import "leaflet.markercluster/dist/MarkerCluster.css";
+@import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 @theme {
   /* Кольори з логотипу Попутки UA */
@@ -40,9 +43,4 @@ html, body {
 ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
 
 /* ── Selection ── */
-::selection { background: #5B8FD9; color: white; }
-
-/* ── Autocomplete spinner ── */
-@keyframes spin {
-  to { transform: translateY(-50%) rotate(360deg); }
-}
+::selectio
