@@ -1,12 +1,13 @@
 "use client"
-import { useState, useTransition, lazy, Suspense } from "react"
+import { useState, useTransition, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { useSession, logout } from "../lib/useSession"
 import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
 
-const LeafletMap = lazy(() => import("./LeafletMap"))
+const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
 function LogoSVG() {
   return (

@@ -1,11 +1,12 @@
 "use client"
-import { useState, useEffect, useRef, lazy, Suspense } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import PlaceAutocomplete from "../../components/PlaceAutocomplete"
 import { useSession } from "../../lib/useSession"
 
-const MapPicker = lazy(() => import("../../components/MapPicker"))
+const MapPicker = dynamic(() => import("../../components/MapPicker"), { ssr: false })
 
 function LogoSVG() {
   return (
@@ -546,7 +547,6 @@ export default function NewAnnouncement() {
             Публікуючи, ти погоджуєшся з{" "}
             <a href="#" className="underline" style={{ color: "#5B8FD9" }}>правилами сайту</a>
           </p>
-
         </form>
       </div>
     </div>
