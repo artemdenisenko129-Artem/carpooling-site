@@ -1,12 +1,10 @@
 "use client"
-import { useState, useTransition, lazy, Suspense } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useSession, logout } from "../lib/useSession"
 import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
-
-const LeafletMap = lazy(() => import("./LeafletMap"))
 
 
 function LogoSVG() {
@@ -26,7 +24,6 @@ function LogoSVG() {
 }
 
 type RoleFilter = "all" | "driver" | "passenger"
-type ViewMode = "list" | "map"
 type ScopeFilter = "all" | "suburban" | "intercity"
 type TripTypeFilter = "all" | "regular"
 
@@ -74,7 +71,6 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const [toVal, setToVal]   = useState(initialTo)
 
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
-  const [view, setView] = useState<ViewMode>("list")
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
 
@@ -247,22 +243,24 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
       {/* Перемикач список/карта */}
       <div className="bg-white border-b border-[#E5E7EB] flex">
-        {(["list", "map"] as ViewMode[]).map((v) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
-            style={view === v
-              ? { color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }
-              : { color: "#9CA3AF", borderColor: "transparent" }}
-          >
-            {v === "list" ? "☰ Список" : "🗺 Карта"}
-          </button>
-        ))}
+        <button
+          className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
+          style={{ color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }}
+          disabled
+        >
+          ☰ Список
+        </button>
+        <Link
+          href="/map"
+          className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all no-underline"
+          style={{ color: "#9CA3AF", borderColor: "transparent" }}
+        >
+          🗺 Карта
+        </Link>
       </div>
 
       {/* Список */}
-      {view === "list" && (
+      {(
         <div className="px-4 pt-3 pb-32 flex flex-col gap-3">
           <p className="text-xs text-[#9CA3AF]">
             {isSearchActive ? "Результати пошуку:" : "Останні оголошення:"}{" "}
@@ -283,23 +281,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* Карта */}
-      {view === "map" && (
-        <div className="px-4 pt-3 pb-32">
-          <Suspense fallback={
-            <div className="rounded-2xl border border-[#E5E7EB] flex items-center justify-center text-[#9CA3AF] text-sm"
-              style={{ height: 400, background: "#EBF2FC" }}>
-              Завантаження карти...
-            </div>
-          }>
-            <LeafletMap announcements={filtered} />
-          </Suspense>
-          <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
-            <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
-            <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
-          </div>
-        </div>
-      )}
+
 
       {/* Футер */}
       <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
