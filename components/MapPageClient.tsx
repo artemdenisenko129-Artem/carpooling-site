@@ -1,6 +1,20 @@
 "use client"
 import Link from "next/link"
-import LeafletMap from "./LeafletMap"
+import dynamic from "next/dynamic"
+
+const LeafletMap = dynamic(() => import("./LeafletMap"), {
+  ssr: false,
+  loading: () => (
+    <div style={{
+      height: 440, width: "100%", borderRadius: 16,
+      background: "#E5E7EB", display: "flex",
+      alignItems: "center", justifyContent: "center",
+      color: "#9CA3AF", fontSize: 14,
+    }}>
+      Завантаження карти…
+    </div>
+  ),
+})
 
 interface Announcement {
   _id: string
