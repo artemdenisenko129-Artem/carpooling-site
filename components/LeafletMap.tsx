@@ -48,11 +48,13 @@ export default function LeafletMap({ announcements }: Props) {
     if (typeof window === "undefined" || !containerRef.current) return
     if (mapRef.current) return
 
+    let cancelled = false
+
     Promise.all([
       import("leaflet"),
       import("leaflet.markercluster"),
     ]).then(([L]) => {
-      if (!containerRef.current || mapRef.current) return
+      if (cancelled || !containerRef.current || mapRef.current) return
 
       delete (L.Icon.Default.prototype as any)._getIconUrl
       L.Icon.Default.mergeOptions({
@@ -80,8 +82,10 @@ export default function LeafletMap({ announcements }: Props) {
         "opacity:0;transition:opacity 0.2s;z-index:900;white-space:nowrap",
       ].join(";")
       hintEl.textContent = "Ctrl + прокрутка — зум карти"
-      container.parentElement!.style.position = "relative"
-      container.parentElement!.appendChild(hintEl)
+      if (container.parentElement) {
+        container.parentElement.style.position = "relative"
+        container.parentElement.appendChild(hintEl)
+      }
 
       container.addEventListener("wheel", (e: WheelEvent) => {
         if (e.ctrlKey || e.metaKey) {
@@ -111,6 +115,7 @@ export default function LeafletMap({ announcements }: Props) {
     })
 
     return () => {
+      cancelled = true
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
