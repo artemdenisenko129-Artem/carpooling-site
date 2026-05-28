@@ -51,7 +51,7 @@ export default function MapPageClient({ announcements }: Props) {
   // This prevents React 19 remount cycle from cancelling Leaflet initialisation.
   const [hydrated, setHydrated] = useState(false)
   useEffect(() => {
-    const t = setTimeout(() => setHydrated(true), 600)
+    const t = setTimeout(() => setHydrated(true), 1500)
     return () => clearTimeout(t)
   }, [])
 
