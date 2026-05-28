@@ -1,7 +1,4 @@
 "use client"
-import "leaflet/dist/leaflet.css"
-import "leaflet.markercluster/dist/MarkerCluster.css"
-import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import { useEffect, useRef, useState } from "react"
 
 interface Waypoint {
@@ -111,6 +108,8 @@ export default function LeafletMap({ announcements }: Props) {
       })
 
       mapRef.current = map
+      // Примусово перераховуємо розміри після монтування
+      setTimeout(() => { map.invalidateSize() }, 0)
       renderMarkers(L, map)
     })
 
