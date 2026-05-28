@@ -49,19 +49,14 @@ export default function LeafletMap({ announcements }: Props) {
     if (mapRef.current) return
 
     let cancelled = false
-    let rafId: number
 
-    // Чекаємо два кадри анімації — React гарантовано завершить гідратацію
-    rafId = requestAnimationFrame(() => {
-      rafId = requestAnimationFrame(() => {
-        if (cancelled || !containerRef.current || mapRef.current) return
-
-        Promise.all([
-          import("leaflet"),
-          import("leaflet.markercluster"),
-        ]).then(([L]) => {
-          setDebugLog(l => [...l, `[${ts()}] promise resolved | cancelled=${cancelled} container=${!!containerRef.current} map=${!!mapRef.current}`])
-          if (cancelled || !containerRef.current || mapRef.current) return
+    // Leaflet already preloaded by MapPageClient — Promise resolves instantly from cache
+    Promise.all([
+      import("leaflet"),
+      import("leaflet.markercluster"),
+    ]).then(([L]) => {
+      setDebugLog(l => [...l, `[${ts()}] promise resolved | cancelled=${cancelled} container=${!!containerRef.current} map=${!!mapRef.current}`])
+      if (cancelled || !containerRef.current || mapRef.current) return
 
       delete (L.Icon.Default.prototype as any)._getIconUrl
       L.Icon.Default.mergeOptions({
@@ -119,16 +114,12 @@ export default function LeafletMap({ announcements }: Props) {
 
       mapRef.current = map
       setDebugLog(l => [...l, `[${ts()}] MAP INITIALIZED ✓`])
-      // Примусово перераховуємо розміри після монтування
       setTimeout(() => { map.invalidateSize() }, 0)
       renderMarkers(L, map)
-        })
-      })
     })
 
     return () => {
       setDebugLog(l => [...l, `[${ts()}] CLEANUP | map=${!!mapRef.current}`])
-      cancelAnimationFrame(rafId)
       cancelled = true
       if (mapRef.current) {
         mapRef.current.remove()

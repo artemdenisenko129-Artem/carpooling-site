@@ -2,6 +2,13 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
 
+// Preload Leaflet modules as soon as this client component is parsed —
+// by the time LeafletMap actually mounts, the modules are already cached.
+if (typeof window !== "undefined") {
+  import("leaflet")
+  import("leaflet.markercluster")
+}
+
 const LeafletMap = dynamic(() => import("./LeafletMap"), {
   ssr: false,
   loading: () => (
@@ -60,7 +67,6 @@ function LogoSVG() {
 export default function MapPageClient({ announcements }: Props) {
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
-      {/* Хедер */}
       <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center gap-3">
         <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
           <LogoSVG />
@@ -79,7 +85,6 @@ export default function MapPageClient({ announcements }: Props) {
         </Link>
       </header>
 
-      {/* Карта — завжди видима, ініціалізується одразу */}
       <div className="px-4 pt-3 pb-24">
         <LeafletMap announcements={announcements} />
         <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
@@ -88,7 +93,6 @@ export default function MapPageClient({ announcements }: Props) {
         </div>
       </div>
 
-      {/* Кнопка створити оголошення */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pb-5 pt-3 pointer-events-none"
         style={{ background: "linear-gradient(to top, rgba(243,244,246,1) 60%, rgba(243,244,246,0))" }}>
         <Link
