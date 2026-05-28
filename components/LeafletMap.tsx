@@ -40,9 +40,11 @@ export default function LeafletMap({ announcements }: Props) {
 
   const [sheet, setSheet] = useState<Announcement | null>(null)
   const [locating, setLocating] = useState(false)
+  const [debugLog, setDebugLog] = useState<string[]>([])
 
   useEffect(() => {
-    console.log("[LeafletMap] useEffect fired", { hasContainer: !!containerRef.current, hasMap: !!mapRef.current })
+    const ts = () => new Date().toISOString().slice(11,23)
+    setDebugLog(l => [...l, `[${ts()}] effect fired | container=${!!containerRef.current} map=${!!mapRef.current}`])
     if (typeof window === "undefined" || !containerRef.current) return
     if (mapRef.current) return
 
@@ -52,7 +54,7 @@ export default function LeafletMap({ announcements }: Props) {
       import("leaflet"),
       import("leaflet.markercluster"),
     ]).then(([L]) => {
-      console.log("[LeafletMap] Promise resolved", { cancelled, hasContainer: !!containerRef.current, hasMap: !!mapRef.current })
+      setDebugLog(l => [...l, `[${ts()}] promise resolved | cancelled=${cancelled} container=${!!containerRef.current} map=${!!mapRef.current}`])
       if (cancelled || !containerRef.current || mapRef.current) return
 
       delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -110,13 +112,14 @@ export default function LeafletMap({ announcements }: Props) {
       })
 
       mapRef.current = map
+      setDebugLog(l => [...l, `[${ts()}] MAP INITIALIZED ✓`])
       // Примусово перераховуємо розміри після монтування
       setTimeout(() => { map.invalidateSize() }, 0)
       renderMarkers(L, map)
     })
 
     return () => {
-      console.log("[LeafletMap] useEffect CLEANUP", { hasMap: !!mapRef.current })
+      setDebugLog(l => [...l, `[${ts()}] CLEANUP | map=${!!mapRef.current}`])
       cancelled = true
       if (mapRef.current) {
         mapRef.current.remove()
@@ -332,6 +335,15 @@ export default function LeafletMap({ announcements }: Props) {
         ref={containerRef}
         style={{ height: 440, width: "100%", borderRadius: 16, overflow: "hidden" }}
       />
+
+      {/* DEBUG PANEL — видалити після діагностики */}
+      <div style={{
+        marginTop: 8, background: "#111", color: "#0f0", borderRadius: 8,
+        padding: "8px 10px", fontSize: 11, fontFamily: "monospace",
+        lineHeight: 1.6, maxHeight: 120, overflowY: "auto"
+      }}>
+        {debugLog.length === 0 ? "очікую…" : debugLog.map((l, i) => <div key={i}>{l}</div>)}
+      </div>
 
       {/* Bottom sheet */}
       {sheet && (
