@@ -42,6 +42,7 @@ export default function LeafletMap({ announcements }: Props) {
   const [locating, setLocating] = useState(false)
 
   useEffect(() => {
+    console.log("[LeafletMap] useEffect fired", { hasContainer: !!containerRef.current, hasMap: !!mapRef.current })
     if (typeof window === "undefined" || !containerRef.current) return
     if (mapRef.current) return
 
@@ -51,6 +52,7 @@ export default function LeafletMap({ announcements }: Props) {
       import("leaflet"),
       import("leaflet.markercluster"),
     ]).then(([L]) => {
+      console.log("[LeafletMap] Promise resolved", { cancelled, hasContainer: !!containerRef.current, hasMap: !!mapRef.current })
       if (cancelled || !containerRef.current || mapRef.current) return
 
       delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -114,6 +116,7 @@ export default function LeafletMap({ announcements }: Props) {
     })
 
     return () => {
+      console.log("[LeafletMap] useEffect CLEANUP", { hasMap: !!mapRef.current })
       cancelled = true
       if (mapRef.current) {
         mapRef.current.remove()
