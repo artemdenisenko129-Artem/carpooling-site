@@ -43,83 +43,87 @@ export default function LeafletMap({ announcements }: Props) {
   const [debugLog, setDebugLog] = useState<string[]>([])
 
   useEffect(() => {
-    const ts = () => new Date().toISOString().slice(11,23)
+    const ts = () => new Date().toISOString().slice(11, 23)
     setDebugLog(l => [...l, `[${ts()}] effect fired | container=${!!containerRef.current} map=${!!mapRef.current}`])
     if (typeof window === "undefined" || !containerRef.current) return
     if (mapRef.current) return
 
     let cancelled = false
+    let timerId: ReturnType<typeof setTimeout>
 
-    // Leaflet already preloaded by MapPageClient — Promise resolves instantly from cache
-    Promise.all([
-      import("leaflet"),
-      import("leaflet.markercluster"),
-    ]).then(([L]) => {
-      setDebugLog(l => [...l, `[${ts()}] promise resolved | cancelled=${cancelled} container=${!!containerRef.current} map=${!!mapRef.current}`])
+    // Wait 400ms — React 19 hydration remount cycle finishes well within this window
+    timerId = setTimeout(() => {
       if (cancelled || !containerRef.current || mapRef.current) return
+      setDebugLog(l => [...l, `[${ts()}] timer fired, loading Leaflet`])
 
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      })
+      Promise.all([
+        import("leaflet"),
+        import("leaflet.markercluster"),
+      ]).then(([L]) => {
+        setDebugLog(l => [...l, `[${ts()}] promise resolved | cancelled=${cancelled} container=${!!containerRef.current} map=${!!mapRef.current}`])
+        if (cancelled || !containerRef.current || mapRef.current) return
 
-      const map = L.map(containerRef.current, {
-        center: [49.5, 31.5],
-        zoom: 6,
-        zoomControl: true,
-        scrollWheelZoom: false,
-        // Scroll zoom disabled — карта всередині сторінки,
-        // користуйся кнопками +/- або Ctrl+колесо
-      })
-      // Scroll без Ctrl → показуємо підказку; Ctrl+scroll → зум
-      let hintTimeout: ReturnType<typeof setTimeout> | null = null
-      const container = containerRef.current
-      const hintEl = document.createElement("div")
-      hintEl.style.cssText = [
-        "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)",
-        "background:rgba(17,24,39,0.75);color:white;border-radius:12px",
-        "padding:8px 18px;font-size:13px;pointer-events:none",
-        "opacity:0;transition:opacity 0.2s;z-index:900;white-space:nowrap",
-      ].join(";")
-      hintEl.textContent = "Ctrl + прокрутка — зум карти"
-      if (container.parentElement) {
-        container.parentElement.style.position = "relative"
-        container.parentElement.appendChild(hintEl)
-      }
+        delete (L.Icon.Default.prototype as any)._getIconUrl
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+          iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+          shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        })
 
-      container.addEventListener("wheel", (e: WheelEvent) => {
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault()
-          if (e.deltaY < 0) map.zoomIn(1)
-          else map.zoomOut(1)
-        } else {
-          hintEl.style.opacity = "1"
-          if (hintTimeout) clearTimeout(hintTimeout)
-          hintTimeout = setTimeout(() => { hintEl.style.opacity = "0" }, 1500)
+        const map = L.map(containerRef.current, {
+          center: [49.5, 31.5],
+          zoom: 6,
+          zoomControl: true,
+          scrollWheelZoom: false,
+        })
+
+        let hintTimeout: ReturnType<typeof setTimeout> | null = null
+        const container = containerRef.current
+        const hintEl = document.createElement("div")
+        hintEl.style.cssText = [
+          "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)",
+          "background:rgba(17,24,39,0.75);color:white;border-radius:12px",
+          "padding:8px 18px;font-size:13px;pointer-events:none",
+          "opacity:0;transition:opacity 0.2s;z-index:900;white-space:nowrap",
+        ].join(";")
+        hintEl.textContent = "Ctrl + прокрутка — зум карти"
+        if (container.parentElement) {
+          container.parentElement.style.position = "relative"
+          container.parentElement.appendChild(hintEl)
         }
-      }, { passive: false })
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors",
-        maxZoom: 18,
-      }).addTo(map)
+        container.addEventListener("wheel", (e: WheelEvent) => {
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            if (e.deltaY < 0) map.zoomIn(1)
+            else map.zoomOut(1)
+          } else {
+            hintEl.style.opacity = "1"
+            if (hintTimeout) clearTimeout(hintTimeout)
+            hintTimeout = setTimeout(() => { hintEl.style.opacity = "0" }, 1500)
+          }
+        }, { passive: false })
 
-      // Клік по карті — знімає вибір
-      map.on("click", () => {
-        deactivate()
-        setSheet(null)
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "&copy; OpenStreetMap contributors",
+          maxZoom: 18,
+        }).addTo(map)
+
+        map.on("click", () => {
+          deactivate()
+          setSheet(null)
+        })
+
+        mapRef.current = map
+        setDebugLog(l => [...l, `[${ts()}] MAP INITIALIZED ✓`])
+        setTimeout(() => { map.invalidateSize() }, 0)
+        renderMarkers(L, map)
       })
-
-      mapRef.current = map
-      setDebugLog(l => [...l, `[${ts()}] MAP INITIALIZED ✓`])
-      setTimeout(() => { map.invalidateSize() }, 0)
-      renderMarkers(L, map)
-    })
+    }, 400)
 
     return () => {
       setDebugLog(l => [...l, `[${ts()}] CLEANUP | map=${!!mapRef.current}`])
+      clearTimeout(timerId)
       cancelled = true
       if (mapRef.current) {
         mapRef.current.remove()
@@ -172,9 +176,7 @@ export default function LeafletMap({ announcements }: Props) {
   function dropIcon(L: any, color: string) {
     return L.divIcon({
       className: "",
-      html: `<div style="position:relative;width:18px;height:24px">
-        <div style="position:absolute;top:0;left:1px;width:16px;height:16px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid white;box-shadow:0 1px 5px rgba(0,0,0,0.35)"></div>
-      </div>`,
+      html: `<div style="position:relative;width:18px;height:24px"><div style="position:absolute;top:0;left:1px;width:16px;height:16px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid white;box-shadow:0 1px 5px rgba(0,0,0,0.35)"></div></div>`,
       iconSize: [18, 24],
       iconAnchor: [9, 24],
     })
@@ -224,7 +226,6 @@ export default function LeafletMap({ announcements }: Props) {
         dashArray: "7 6",
       }).addTo(map)
 
-      // Зворотній маршрут (туди-назад) — окрема пунктирна лінія
       if (a.isRoundTrip && a.toLat != null && a.toLng != null) {
         const returnLatlngs: [number, number][] = [
           [a.toLat!, a.toLng!],
@@ -239,19 +240,16 @@ export default function LeafletMap({ announcements }: Props) {
       }
 
       const inactiveColor = a.role === "driver" ? "#93B4E8" : "#FDBA74"
-      const markers = points.map((p, idx) => {
+      const markers = points.map((p) => {
         const icon = p.isTo ? dropIcon(L, inactiveColor) : circleIcon(L, inactiveColor, a.role)
         const m = L.marker([p.lat, p.lng], { icon })
-        // зберігаємо метадані на маркері
         m._isTo = !!p.isTo
         m._role = a.role
         m._L = L
-
         m.on("click", (e: any) => {
           e.originalEvent?.stopPropagation()
           activate(L, markers, routeLine, a)
         })
-
         cluster.addLayer(m)
         return m
       })
@@ -277,8 +275,6 @@ export default function LeafletMap({ announcements }: Props) {
         import("leaflet").then((L) => {
           const { latitude: lat, longitude: lng } = pos.coords
           mapRef.current.setView([lat, lng], 12, { animate: true })
-
-          // Прибрати старий маркер геолокації
           if (userMarkerRef.current) {
             try { mapRef.current.removeLayer(userMarkerRef.current) } catch {}
           }
@@ -301,7 +297,6 @@ export default function LeafletMap({ announcements }: Props) {
 
   return (
     <div style={{ position: "relative" }}>
-      {/* Кнопка геолокації */}
       <button
         onClick={handleLocate}
         disabled={locating}
@@ -336,7 +331,7 @@ export default function LeafletMap({ announcements }: Props) {
         style={{ height: 440, width: "100%", borderRadius: 16, overflow: "hidden" }}
       />
 
-      {/* DEBUG PANEL — видалити після діагностики */}
+      {/* DEBUG PANEL */}
       <div style={{
         marginTop: 8, background: "#111", color: "#0f0", borderRadius: 8,
         padding: "8px 10px", fontSize: 11, fontFamily: "monospace",
@@ -345,7 +340,6 @@ export default function LeafletMap({ announcements }: Props) {
         {debugLog.length === 0 ? "очікую…" : debugLog.map((l, i) => <div key={i}>{l}</div>)}
       </div>
 
-      {/* Bottom sheet */}
       {sheet && (
         <div
           style={{
@@ -356,10 +350,8 @@ export default function LeafletMap({ announcements }: Props) {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Ручка */}
           <div style={{ width: 36, height: 4, borderRadius: 2, background: "#E5E7EB", margin: "0 auto 12px" }} />
 
-          {/* Шапка */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{
@@ -377,15 +369,13 @@ export default function LeafletMap({ announcements }: Props) {
             <button
               onClick={() => { deactivate(); setSheet(null) }}
               style={{ background: "none", border: "none", fontSize: 18, color: "#9CA3AF", cursor: "pointer", padding: "0 4px" }}
-            >×</button>
+            >\xd7</button>
           </div>
 
-          {/* Маршрут */}
           <div style={{ fontSize: 16, fontWeight: 800, color: "#111827", marginBottom: 6 }}>
             {sheet.from} → {sheet.to}
           </div>
 
-          {/* Час */}
           {(sheet.departureTime || sheet.returnTime) && (
             <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
               {sheet.departureTime && (
@@ -406,7 +396,6 @@ export default function LeafletMap({ announcements }: Props) {
             </div>
           )}
 
-          {/* Опис */}
           {sheet.aiText && (
             <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.45, margin: "0 0 12px",
               display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}>
@@ -414,7 +403,6 @@ export default function LeafletMap({ announcements }: Props) {
             </p>
           )}
 
-          {/* Контакт */}
           {sheet.telegramUsername ? (
             <a
               href={`https://t.me/${sheet.telegramUsername}`}

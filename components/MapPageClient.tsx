@@ -2,13 +2,6 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
 
-// Preload Leaflet modules as soon as this client component is parsed —
-// by the time LeafletMap actually mounts, the modules are already cached.
-if (typeof window !== "undefined") {
-  import("leaflet")
-  import("leaflet.markercluster")
-}
-
 const LeafletMap = dynamic(() => import("./LeafletMap"), {
   ssr: false,
   loading: () => (
