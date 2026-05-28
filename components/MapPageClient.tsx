@@ -1,20 +1,9 @@
 "use client"
 import Link from "next/link"
 import dynamic from "next/dynamic"
+import { useEffect, useState } from "react"
 
-const LeafletMap = dynamic(() => import("./LeafletMap"), {
-  ssr: false,
-  loading: () => (
-    <div style={{
-      height: 440, width: "100%", borderRadius: 16,
-      background: "#E5E7EB", display: "flex",
-      alignItems: "center", justifyContent: "center",
-      color: "#9CA3AF", fontSize: 14,
-    }}>
-      Завантаження карти…
-    </div>
-  ),
-})
+const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
 interface Announcement {
   _id: string
@@ -58,6 +47,14 @@ function LogoSVG() {
 }
 
 export default function MapPageClient({ announcements }: Props) {
+  // Mount LeafletMap only after hydration is complete (600ms safety window).
+  // This prevents React 19 remount cycle from cancelling Leaflet initialisation.
+  const [hydrated, setHydrated] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setHydrated(true), 600)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
       <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center gap-3">
@@ -79,7 +76,18 @@ export default function MapPageClient({ announcements }: Props) {
       </header>
 
       <div className="px-4 pt-3 pb-24">
-        <LeafletMap announcements={announcements} />
+        {hydrated ? (
+          <LeafletMap announcements={announcements} />
+        ) : (
+          <div style={{
+            height: 440, width: "100%", borderRadius: 16,
+            background: "#E5E7EB", display: "flex",
+            alignItems: "center", justifyContent: "center",
+            color: "#9CA3AF", fontSize: 14,
+          }}>
+            Завантаження карти…
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
           <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
           <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
