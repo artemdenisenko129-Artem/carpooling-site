@@ -49,52 +49,70 @@ export default function MapPageClient({ announcements }: Props) {
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
-      <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center gap-3">
-        <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
-          <LogoSVG />
-          <div className="leading-tight">
-            <div className="text-lg font-extrabold text-[#111827] tracking-tight">Попутки<span style={{ color: "#5B8FD9" }}>UA</span></div>
-            <div className="text-[10px] text-[#9CA3AF] font-normal">приміські поїздки</div>
-          </div>
-        </Link>
-        <Link href="/" className="ml-auto shrink-0 rounded-full px-4 py-2 text-sm font-semibold no-underline border border-[#E5E7EB] text-[#374151] bg-white">
-          ☰ Список
-        </Link>
-      </header>
+      {/* Закріплений верхній блок */}
+      <div className="sticky top-0 z-50 bg-white shadow-sm">
+        <header className="border-b border-[#E5E7EB] px-4 py-3 flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
+            <LogoSVG />
+            <div className="leading-tight">
+              <div className="text-lg font-extrabold text-[#111827] tracking-tight">Попутки<span style={{ color: "#5B8FD9" }}>UA</span></div>
+              <div className="text-[10px] text-[#9CA3AF] font-normal">приміські поїздки</div>
+            </div>
+          </Link>
+        </header>
 
-      {/* Search bar — same style as FeedPage */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 py-2 flex flex-col gap-2">
-        <div className="flex gap-2">
-          <input
-            value={searchFrom} onChange={e => setSearchFrom(e.target.value)}
-            placeholder="Звідки…"
-            className="flex-1 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm outline-none focus:border-[#5B8FD9]"
-          />
-          <input
-            value={searchTo} onChange={e => setSearchTo(e.target.value)}
-            placeholder="Куди…"
-            className="flex-1 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm outline-none focus:border-[#5B8FD9]"
-          />
-          {(searchFrom || searchTo) && (
-            <button onClick={() => { setSearchFrom(""); setSearchTo("") }}
-              className="text-[#9CA3AF] text-lg px-1">×</button>
-          )}
+        {/* Пошук */}
+        <div className="border-b border-[#E5E7EB] px-4 py-2 flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              value={searchFrom} onChange={e => setSearchFrom(e.target.value)}
+              placeholder="Звідки…"
+              className="flex-1 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm outline-none focus:border-[#5B8FD9]"
+            />
+            <input
+              value={searchTo} onChange={e => setSearchTo(e.target.value)}
+              placeholder="Куди…"
+              className="flex-1 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm outline-none focus:border-[#5B8FD9]"
+            />
+            {(searchFrom || searchTo) && (
+              <button onClick={() => { setSearchFrom(""); setSearchTo("") }}
+                className="text-[#9CA3AF] text-lg px-1">×</button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {(["all","driver","passenger"] as const).map(r => (
+              <button key={r} onClick={() => setRoleFilter(r)}
+                className="rounded-full px-3 py-1 text-xs font-semibold border transition-colors"
+                style={{
+                  background: roleFilter === r ? "#5B8FD9" : "white",
+                  color: roleFilter === r ? "white" : "#374151",
+                  borderColor: roleFilter === r ? "#5B8FD9" : "#E5E7EB",
+                }}>
+                {r === "all" ? "Всі" : r === "driver" ? "🚗 Водії" : "👤 Пасажири"}
+              </button>
+            ))}
+            <span className="ml-auto text-xs text-[#9CA3AF] self-center">{filtered.length} маршрутів</span>
+          </div>
         </div>
-        <div className="flex gap-2">
-          {(["all","driver","passenger"] as const).map(r => (
-            <button key={r} onClick={() => setRoleFilter(r)}
-              className="rounded-full px-3 py-1 text-xs font-semibold border transition-colors"
-              style={{
-                background: roleFilter === r ? "#5B8FD9" : "white",
-                color: roleFilter === r ? "white" : "#374151",
-                borderColor: roleFilter === r ? "#5B8FD9" : "#E5E7EB",
-              }}>
-              {r === "all" ? "Всі" : r === "driver" ? "🚗 Водії" : "👤 Пасажири"}
-            </button>
-          ))}
-          <span className="ml-auto text-xs text-[#9CA3AF] self-center">{filtered.length} маршрутів</span>
+
+        {/* Перемикач список/карта */}
+        <div className="border-b border-[#E5E7EB] flex">
+          <Link
+            href="/"
+            className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all no-underline"
+            style={{ color: "#9CA3AF", borderColor: "transparent" }}
+          >
+            ☰ Список
+          </Link>
+          <button
+            className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
+            style={{ color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }}
+            disabled
+          >
+            🗺 Карта
+          </button>
         </div>
-      </div>
+      </div>{/* кінець sticky блоку */}
 
       <div className="px-4 pt-3 pb-24">
         <LeafletMap announcements={filtered} />

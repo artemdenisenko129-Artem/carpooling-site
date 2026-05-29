@@ -106,8 +106,10 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
 
+      {/* Закріплений верхній блок */}
+      <div className="sticky top-0 z-50 bg-white shadow-sm">
       {/* Хедер */}
-      <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center justify-between gap-3">
+      <header className="border-b border-[#E5E7EB] px-4 py-3 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
           <LogoSVG />
           <div className="leading-tight">
@@ -142,7 +144,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
       </header>
 
       {/* Пошук */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 pt-3 pb-0">
+      <div className="border-b border-[#E5E7EB] px-4 pt-3 pb-0">
         <form onSubmit={handleSearch}>
           <div
             className="flex items-stretch rounded-xl border transition-colors mb-3"
@@ -242,7 +244,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
       </div>
 
       {/* Перемикач список/карта */}
-      <div className="bg-white border-b border-[#E5E7EB] flex">
+      <div className="border-b border-[#E5E7EB] flex">
         <button
           className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
           style={{ color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }}
@@ -258,6 +260,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
           🗺 Карта
         </Link>
       </div>
+      </div>{/* кінець sticky блоку */}
 
       {/* Список */}
       {(
