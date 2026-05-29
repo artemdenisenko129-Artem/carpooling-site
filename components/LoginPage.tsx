@@ -41,7 +41,7 @@ function LoginContent() {
   const tgRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const botName = process.env.NEXT_PUBLIC_BOT_USERNAME || "poputtky_bot"
+    const botName = "Poputtky_bot"
 
     // Реєструємо глобальний callback — Telegram Widget його викличе після авторизації
     window.onTelegramAuth = async (user: Record<string, string>) => {
