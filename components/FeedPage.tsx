@@ -2,10 +2,12 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { useSession, logout } from "../lib/useSession"
 import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
 
+const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
 function LogoSVG() {
   return (
@@ -26,6 +28,7 @@ function LogoSVG() {
 type RoleFilter = "all" | "driver" | "passenger"
 type ScopeFilter = "all" | "suburban" | "intercity"
 type TripTypeFilter = "all" | "regular"
+type View = "list" | "map"
 
 interface Announcement {
   _id: string
@@ -66,6 +69,7 @@ interface Props {
 export default function FeedPage({ announcements, initialFrom, initialTo }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [view, setView] = useState<View>("list")
 
   const [fromVal, setFromVal] = useState(initialFrom)
   const [toVal, setToVal]   = useState(initialTo)
@@ -108,162 +112,169 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
       {/* Закріплений верхній блок */}
       <div className="sticky top-0 z-50 bg-white shadow-sm">
-      {/* Хедер */}
-      <header className="border-b border-[#E5E7EB] px-4 py-3 flex items-center justify-between gap-3">
-        <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
-          <LogoSVG />
-          <div className="leading-tight">
-            <div className="text-lg font-extrabold text-[#111827] tracking-tight">
-              Попутки<span style={{ color: "#5B8FD9" }}>UA</span>
-            </div>
-            <div className="text-[10px] text-[#9CA3AF] font-normal">приміські поїздки</div>
-          </div>
-        </Link>
 
-        {isLoggedIn ? (
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-sm font-medium text-[#374151]">
-              👤 {user?.name?.split(" ")[0] || "Профіль"}
-            </span>
-            <button
-              className="border border-[#E5E7EB] rounded-full px-3 py-1.5 text-xs font-medium text-[#6B7280] bg-[#F9FAFB] transition-colors hover:border-[#E53935] hover:text-[#E53935]"
-              onClick={logout}
-            >
-              Вийти
-            </button>
-          </div>
-        ) : (
-          <Link
-            href="/login"
-            className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors no-underline"
-            style={{ background: "#5B8FD9" }}
-          >
-            Увійти
+        {/* Хедер */}
+        <header className="border-b border-[#E5E7EB] px-4 py-3 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
+            <LogoSVG />
+            <div className="leading-tight">
+              <div className="text-lg font-extrabold text-[#111827] tracking-tight">
+                Попутки<span style={{ color: "#5B8FD9" }}>UA</span>
+              </div>
+              <div className="text-[10px] text-[#9CA3AF] font-normal">приміські поїздки</div>
+            </div>
           </Link>
-        )}
-      </header>
-
-      {/* Пошук */}
-      <div className="border-b border-[#E5E7EB] px-4 pt-3 pb-0">
-        <form onSubmit={handleSearch}>
-          <div
-            className="flex items-stretch rounded-xl border transition-colors mb-3"
-            style={{ background: "#F3F4F6", borderColor: isPending ? "#5B8FD9" : "#E5E7EB" }}
-          >
-            <div className="flex flex-col items-center justify-center gap-1 px-3 py-3 shrink-0">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#5B8FD9" }} />
-              <div className="w-px h-4 bg-[#D1D5DB]" />
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#E53935" }} />
-            </div>
-            <div className="flex-1 flex flex-col divide-y divide-[#E5E7EB]">
-              <PlaceAutocomplete
-                value={fromVal}
-                onChange={(v) => setFromVal(v)}
-                placeholder="Звідки..."
-                dotColor="blue"
-                inputClassName="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
-              />
-              <PlaceAutocomplete
-                value={toVal}
-                onChange={(v) => setToVal(v)}
-                placeholder="Куди..."
-                dotColor="red"
-                inputClassName="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
-              />
-            </div>
-            <button
-              type="submit"
-              className="px-4 text-lg font-bold text-white shrink-0 transition-colors rounded-r-xl"
-              style={{ background: "#5B8FD9" }}
-              aria-label="Знайти"
-            >
-              &rarr;
-            </button>
-          </div>
-          {isSearchActive && (
-            <button type="button" onClick={handleReset} className="text-xs text-[#9CA3AF] underline mb-2 block">
-              Скинути пошук
-            </button>
-          )}
-        </form>
-
-        <div className="flex gap-2 pb-3 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-          {(["all", "driver", "passenger"] as RoleFilter[]).map((r) => (
-            <button
-              key={r}
-              onClick={() => setRoleFilter(r)}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-              style={roleFilter === r
-                ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-            >
-              {r === "all" ? "🚘 Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
-            </button>
-          ))}
-
-          {(["suburban", "intercity"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setScopeFilter(scopeFilter === s ? "all" : s)}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-              style={scopeFilter === s
-                ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-            >
-              {s === "suburban" ? "🏘 Приміська/Міська" : "🛣 Міжміська"}
-            </button>
-          ))}
-          <button
-            onClick={() => setTripTypeFilter(tripTypeFilter === "regular" ? "all" : "regular")}
-            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-            style={tripTypeFilter === "regular"
-              ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-              : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-          >
-            🔄 Регулярно
-          </button>
 
           {isLoggedIn ? (
-            <button
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-              style={{ background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-              onClick={() => alert("Фільтр за вашою спільнотою (ЖК, район)")}
-            >
-              🏘 Спільнота
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-sm font-medium text-[#374151]">
+                👤 {user?.name?.split(" ")[0] || "Профіль"}
+              </span>
+              <button
+                className="border border-[#E5E7EB] rounded-full px-3 py-1.5 text-xs font-medium text-[#6B7280] bg-[#F9FAFB] transition-colors hover:border-[#E53935] hover:text-[#E53935]"
+                onClick={logout}
+              >
+                Вийти
+              </button>
+            </div>
           ) : (
-            <button
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border"
-              style={{ background: "white", borderColor: "#E5E7EB", color: "#9CA3AF" }}
-              onClick={() => router.push("/login")}
+            <Link
+              href="/login"
+              className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors no-underline"
+              style={{ background: "#5B8FD9" }}
             >
-              🏘 Спільнота 🔒
-            </button>
+              Увійти
+            </Link>
           )}
-        </div>
-      </div>
+        </header>
 
-      {/* Перемикач список/карта */}
-      <div className="border-b border-[#E5E7EB] flex">
-        <button
-          className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
-          style={{ color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }}
-          disabled
-        >
-          ☰ Список
-        </button>
-        <Link
-          href="/map"
-          className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all no-underline"
-          style={{ color: "#9CA3AF", borderColor: "transparent" }}
-        >
-          🗺 Карта
-        </Link>
-      </div>
+        {/* Пошук */}
+        <div className="border-b border-[#E5E7EB] px-4 pt-3 pb-0">
+          <form onSubmit={handleSearch}>
+            <div
+              className="flex items-stretch rounded-xl border transition-colors mb-3"
+              style={{ background: "#F3F4F6", borderColor: isPending ? "#5B8FD9" : "#E5E7EB" }}
+            >
+              <div className="flex flex-col items-center justify-center gap-1 px-3 py-3 shrink-0">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#5B8FD9" }} />
+                <div className="w-px h-4 bg-[#D1D5DB]" />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#E53935" }} />
+              </div>
+              <div className="flex-1 flex flex-col divide-y divide-[#E5E7EB]">
+                <PlaceAutocomplete
+                  value={fromVal}
+                  onChange={(v) => setFromVal(v)}
+                  placeholder="Звідки..."
+                  dotColor="blue"
+                  inputClassName="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
+                />
+                <PlaceAutocomplete
+                  value={toVal}
+                  onChange={(v) => setToVal(v)}
+                  placeholder="Куди..."
+                  dotColor="red"
+                  inputClassName="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-4 text-lg font-bold text-white shrink-0 transition-colors rounded-r-xl"
+                style={{ background: "#5B8FD9" }}
+                aria-label="Знайти"
+              >
+                &rarr;
+              </button>
+            </div>
+            {isSearchActive && (
+              <button type="button" onClick={handleReset} className="text-xs text-[#9CA3AF] underline mb-2 block">
+                Скинути пошук
+              </button>
+            )}
+          </form>
+
+          <div className="flex gap-2 pb-3 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+            {(["all", "driver", "passenger"] as RoleFilter[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setRoleFilter(r)}
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                style={roleFilter === r
+                  ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
+                  : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
+              >
+                {r === "all" ? "🚘 Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
+              </button>
+            ))}
+
+            {(["suburban", "intercity"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setScopeFilter(scopeFilter === s ? "all" : s)}
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                style={scopeFilter === s
+                  ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
+                  : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
+              >
+                {s === "suburban" ? "🏘 Приміська/Міська" : "🛣 Міжміська"}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setTripTypeFilter(tripTypeFilter === "regular" ? "all" : "regular")}
+              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+              style={tripTypeFilter === "regular"
+                ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
+                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
+            >
+              🔄 Регулярно
+            </button>
+
+            {isLoggedIn ? (
+              <button
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                style={{ background: "white", borderColor: "#D1D5DB", color: "#374151" }}
+                onClick={() => alert("Фільтр за вашою спільнотою (ЖК, район)")}
+              >
+                🏘 Спільнота
+              </button>
+            ) : (
+              <button
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border"
+                style={{ background: "white", borderColor: "#E5E7EB", color: "#9CA3AF" }}
+                onClick={() => router.push("/login")}
+              >
+                🏘 Спільнота 🔒
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Перемикач список/карта */}
+        <div className="border-b border-[#E5E7EB] flex">
+          <button
+            onClick={() => setView("list")}
+            className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
+            style={view === "list"
+              ? { color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }
+              : { color: "#9CA3AF", borderColor: "transparent" }}
+          >
+            ☰ Список
+          </button>
+          <button
+            onClick={() => setView("map")}
+            className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
+            style={view === "map"
+              ? { color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }
+              : { color: "#9CA3AF", borderColor: "transparent" }}
+          >
+            🗺 Карта
+          </button>
+        </div>
+
       </div>{/* кінець sticky блоку */}
 
       {/* Список */}
-      {(
+      {view === "list" && (
         <div className="px-4 pt-3 pb-32 flex flex-col gap-3">
           <p className="text-xs text-[#9CA3AF]">
             {isSearchActive ? "Результати пошуку:" : "Останні оголошення:"}{" "}
@@ -284,18 +295,25 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-
-
-      {/* Футер */}
-      <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
-        <p className="mb-2">Попутки UA © 2026</p>
-        <div className="flex gap-4 justify-center flex-wrap">
-          <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Правила сайту</a>
-          <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Про сервіс</a>
-          <a href="https://t.me/poputtky_ua" target="_blank" rel="noopener noreferrer"
-            className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Telegram-канал</a>
+      {/* Карта */}
+      {view === "map" && (
+        <div className="pb-24">
+          <LeafletMap announcements={filtered} />
         </div>
-      </footer>
+      )}
+
+      {/* Футер — тільки в режимі списку */}
+      {view === "list" && (
+        <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
+          <p className="mb-2">Попутки UA © 2026</p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Правила сайту</a>
+            <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Про сервіс</a>
+            <a href="https://t.me/poputtky_ua" target="_blank" rel="noopener noreferrer"
+              className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Telegram-канал</a>
+          </div>
+        </footer>
+      )}
 
       {/* Кнопка створити оголошення */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pb-5 pt-3 pointer-events-none"
