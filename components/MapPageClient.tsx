@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
@@ -47,13 +47,7 @@ function LogoSVG() {
 }
 
 export default function MapPageClient({ announcements }: Props) {
-  // Mount LeafletMap only after hydration is complete (600ms safety window).
-  // This prevents React 19 remount cycle from cancelling Leaflet initialisation.
-  const [hydrated, setHydrated] = useState(false)
-  useEffect(() => {
-    const t = setTimeout(() => setHydrated(true), 1500)
-    return () => clearTimeout(t)
-  }, [])
+  const [mapOpen, setMapOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
@@ -76,17 +70,25 @@ export default function MapPageClient({ announcements }: Props) {
       </header>
 
       <div className="px-4 pt-3 pb-24">
-        {hydrated ? (
+        {mapOpen ? (
           <LeafletMap announcements={announcements} />
         ) : (
-          <div style={{
-            height: 440, width: "100%", borderRadius: 16,
-            background: "#E5E7EB", display: "flex",
-            alignItems: "center", justifyContent: "center",
-            color: "#9CA3AF", fontSize: 14,
-          }}>
-            Завантаження карти…
-          </div>
+          <button
+            onClick={() => setMapOpen(true)}
+            style={{
+              height: 440, width: "100%", borderRadius: 16,
+              background: "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
+              border: "none", cursor: "pointer",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 12,
+            }}
+          >
+            <span style={{ fontSize: 48 }}>🗺️</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#1e40af" }}>Показати карту</span>
+            <span style={{ fontSize: 13, color: "#6b7280" }}>
+              {announcements.filter(a => a.fromLat != null).length} оголошень з координатами
+            </span>
+          </button>
         )}
         <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
           <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
