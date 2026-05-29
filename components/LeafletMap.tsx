@@ -1,6 +1,10 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 
+// Leaflet is loaded as a global script in layout.tsx (window.L)
+// No async imports — eliminates the React 19 hydration race condition entirely
+declare const window: Window & { L: any }
+
 interface Waypoint {
   name: string
   lat: number
@@ -30,14 +34,6 @@ interface Props {
   announcements: Announcement[]
 }
 
-// Start loading Leaflet at MODULE LEVEL — before any React lifecycle.
-// This promise is a singleton: never cancelled regardless of mount/unmount cycles.
-// By the time a stable useEffect fires, Leaflet is already in cache.
-const leafletPromise: Promise<[any, any]> | null =
-  typeof window !== "undefined"
-    ? (Promise.all([import("leaflet"), import("leaflet.markercluster")]) as Promise<[any, any]>)
-    : null
-
 export default function LeafletMap({ announcements }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
@@ -48,79 +44,68 @@ export default function LeafletMap({ announcements }: Props) {
 
   const [sheet, setSheet] = useState<Announcement | null>(null)
   const [locating, setLocating] = useState(false)
-  const [debugLog, setDebugLog] = useState<string[]>([])
 
   useEffect(() => {
-    const ts = () => new Date().toISOString().slice(11, 23)
-    setDebugLog(l => [...l, `[${ts()}] effect fired | container=${!!containerRef.current} map=${!!mapRef.current}`])
-    if (!leafletPromise || !containerRef.current || mapRef.current) return
+    if (!containerRef.current || mapRef.current) return
+    const L = window.L
+    if (!L) return
 
-    let cancelled = false
-
-    leafletPromise.then(([L]) => {
-      setDebugLog(l => [...l, `[${ts()}] promise resolved | cancelled=${cancelled} container=${!!containerRef.current} map=${!!mapRef.current}`])
-      if (cancelled || !containerRef.current || mapRef.current) return
-
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      })
-
-      const map = L.map(containerRef.current, {
-        center: [49.5, 31.5],
-        zoom: 6,
-        zoomControl: true,
-        scrollWheelZoom: false,
-      })
-
-      let hintTimeout: ReturnType<typeof setTimeout> | null = null
-      const container = containerRef.current
-      const hintEl = document.createElement("div")
-      hintEl.style.cssText = [
-        "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)",
-        "background:rgba(17,24,39,0.75);color:white;border-radius:12px",
-        "padding:8px 18px;font-size:13px;pointer-events:none",
-        "opacity:0;transition:opacity 0.2s;z-index:900;white-space:nowrap",
-      ].join(";")
-      hintEl.textContent = "Ctrl + прокрутка — зум карти"
-      if (container.parentElement) {
-        container.parentElement.style.position = "relative"
-        container.parentElement.appendChild(hintEl)
-      }
-
-      container.addEventListener("wheel", (e: WheelEvent) => {
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault()
-          if (e.deltaY < 0) map.zoomIn(1)
-          else map.zoomOut(1)
-        } else {
-          hintEl.style.opacity = "1"
-          if (hintTimeout) clearTimeout(hintTimeout)
-          hintTimeout = setTimeout(() => { hintEl.style.opacity = "0" }, 1500)
-        }
-      }, { passive: false })
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors",
-        maxZoom: 18,
-      }).addTo(map)
-
-      map.on("click", () => {
-        deactivate()
-        setSheet(null)
-      })
-
-      mapRef.current = map
-      setDebugLog(l => [...l, `[${ts()}] MAP INITIALIZED ✓`])
-      setTimeout(() => { map.invalidateSize() }, 0)
-      renderMarkers(L, map)
+    delete L.Icon.Default.prototype._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
     })
 
+    const map = L.map(containerRef.current, {
+      center: [49.5, 31.5],
+      zoom: 6,
+      zoomControl: true,
+      scrollWheelZoom: false,
+    })
+
+    let hintTimeout: ReturnType<typeof setTimeout> | null = null
+    const container = containerRef.current
+    const hintEl = document.createElement("div")
+    hintEl.style.cssText = [
+      "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)",
+      "background:rgba(17,24,39,0.75);color:white;border-radius:12px",
+      "padding:8px 18px;font-size:13px;pointer-events:none",
+      "opacity:0;transition:opacity 0.2s;z-index:900;white-space:nowrap",
+    ].join(";")
+    hintEl.textContent = "Ctrl + прокрутка — зум карти"
+    if (container.parentElement) {
+      container.parentElement.style.position = "relative"
+      container.parentElement.appendChild(hintEl)
+    }
+
+    container.addEventListener("wheel", (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        if (e.deltaY < 0) map.zoomIn(1)
+        else map.zoomOut(1)
+      } else {
+        hintEl.style.opacity = "1"
+        if (hintTimeout) clearTimeout(hintTimeout)
+        hintTimeout = setTimeout(() => { hintEl.style.opacity = "0" }, 1500)
+      }
+    }, { passive: false })
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 18,
+    }).addTo(map)
+
+    map.on("click", () => {
+      deactivate()
+      setSheet(null)
+    })
+
+    mapRef.current = map
+    setTimeout(() => { map.invalidateSize() }, 0)
+    renderMarkers(L, map)
+
     return () => {
-      setDebugLog(l => [...l, `[${ts()}] CLEANUP | map=${!!mapRef.current}`])
-      cancelled = true
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
@@ -131,8 +116,8 @@ export default function LeafletMap({ announcements }: Props) {
   }, [])
 
   useEffect(() => {
-    if (!mapRef.current) return
-    leafletPromise?.then(([L]) => renderMarkers(L, mapRef.current))
+    if (!mapRef.current || !window.L) return
+    renderMarkers(window.L, mapRef.current)
   }, [announcements])
 
   function deactivate() {
@@ -190,7 +175,7 @@ export default function LeafletMap({ announcements }: Props) {
     )
     if (withCoords.length === 0) return
 
-    const cluster = (L as any).markerClusterGroup({
+    const cluster = L.markerClusterGroup({
       maxClusterRadius: 40,
       showCoverageOnHover: false,
       iconCreateFunction: (c: any) => {
@@ -261,21 +246,20 @@ export default function LeafletMap({ announcements }: Props) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocating(false)
-        leafletPromise?.then(([L]) => {
-          const { latitude: lat, longitude: lng } = pos.coords
-          mapRef.current.setView([lat, lng], 12, { animate: true })
-          if (userMarkerRef.current) {
-            try { mapRef.current.removeLayer(userMarkerRef.current) } catch {}
-          }
-          const icon = L.divIcon({
-            className: "",
-            html: `<div style="width:16px;height:16px;border-radius:50%;background:#10B981;border:3px solid white;box-shadow:0 0 0 4px rgba(16,185,129,0.25)"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-          })
-          const m = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(mapRef.current)
-          userMarkerRef.current = m
+        const L = window.L
+        const { latitude: lat, longitude: lng } = pos.coords
+        mapRef.current.setView([lat, lng], 12, { animate: true })
+        if (userMarkerRef.current) {
+          try { mapRef.current.removeLayer(userMarkerRef.current) } catch {}
+        }
+        const icon = L.divIcon({
+          className: "",
+          html: `<div style="width:16px;height:16px;border-radius:50%;background:#10B981;border:3px solid white;box-shadow:0 0 0 4px rgba(16,185,129,0.25)"></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
         })
+        const m = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(mapRef.current)
+        userMarkerRef.current = m
       },
       () => setLocating(false),
       { timeout: 8000 }
@@ -300,7 +284,7 @@ export default function LeafletMap({ announcements }: Props) {
           fontSize: 18, transition: "all .2s",
         }}
       >
-        {locating ? "⏳" : "\U0001f3af"}
+        {locating ? "⏳" : "\U0001F3AF"}
       </button>
 
       {!hasAny && (
@@ -310,7 +294,7 @@ export default function LeafletMap({ announcements }: Props) {
           background: "rgba(17,24,39,0.65)", borderRadius: 20,
           padding: "5px 14px", fontSize: 11, color: "white", whiteSpace: "nowrap",
         }}>
-          \U0001f5fa Немає оголошень з координатами — карта для нових
+          \U0001F5FA Немає оголошень з координатами
         </div>
       )}
 
@@ -318,15 +302,6 @@ export default function LeafletMap({ announcements }: Props) {
         ref={containerRef}
         style={{ height: 440, width: "100%", borderRadius: 16, overflow: "hidden" }}
       />
-
-      {/* DEBUG PANEL */}
-      <div style={{
-        marginTop: 8, background: "#111", color: "#0f0", borderRadius: 8,
-        padding: "8px 10px", fontSize: 11, fontFamily: "monospace",
-        lineHeight: 1.6, maxHeight: 200, overflowY: "auto"
-      }}>
-        {debugLog.length === 0 ? "очікую…" : debugLog.map((l, i) => <div key={i}>{l}</div>)}
-      </div>
 
       {sheet && (
         <div
@@ -365,7 +340,7 @@ export default function LeafletMap({ announcements }: Props) {
             <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
               {sheet.departureTime && (
                 <span style={{ fontSize: 12, background: "#F3F4F6", color: "#374151", padding: "3px 9px", borderRadius: 9 }}>
-                  \U0001f550 {sheet.departureTime}
+                  \U0001F550 {sheet.departureTime}
                 </span>
               )}
               {sheet.returnTime && (
@@ -375,7 +350,7 @@ export default function LeafletMap({ announcements }: Props) {
               )}
               {sheet.seats != null && sheet.seats > 0 && (
                 <span style={{ fontSize: 12, background: "#F3F4F6", color: "#374151", padding: "3px 9px", borderRadius: 9 }}>
-                  \U0001f464 {sheet.seats} {sheet.seats === 1 ? "місце" : sheet.seats < 5 ? "місця" : "місць"}
+                  \U0001F464 {sheet.seats} {sheet.seats === 1 ? "місце" : sheet.seats < 5 ? "місця" : "місць"}
                 </span>
               )}
             </div>
@@ -400,7 +375,7 @@ export default function LeafletMap({ announcements }: Props) {
             </a>
           ) : (
             <div style={{ textAlign: "center", fontSize: 13, color: "#9CA3AF" }}>
-              Контакт недоступний — увійдіть, щоб побачити
+              Контакт недоступний
             </div>
           )}
         </div>

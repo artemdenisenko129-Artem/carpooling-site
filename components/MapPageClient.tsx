@@ -1,6 +1,8 @@
 "use client"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
+
+const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
 interface Announcement {
   _id: string
@@ -44,28 +46,6 @@ function LogoSVG() {
 }
 
 export default function MapPageClient({ announcements }: Props) {
-  const [mapOpen, setMapOpen] = useState(false)
-  const [MapComp, setMapComp] = useState<React.ComponentType<{ announcements: any[] }> | null>(null)
-  const [loadFailed, setLoadFailed] = useState(false)
-
-  // Preload LeafletMap chunk immediately when page opens
-  useEffect(() => {
-    import("./LeafletMap")
-  }, [])
-
-  useEffect(() => {
-    if (!mapOpen) return
-    setLoadFailed(false)
-    const timeout = setTimeout(() => setLoadFailed(true), 3000)
-    import("./LeafletMap").then((mod) => {
-      clearTimeout(timeout)
-      setMapComp(() => mod.default)
-    })
-    return () => clearTimeout(timeout)
-  }, [mapOpen])
-
-  const count = announcements.filter(a => a.fromLat != null).length
-
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
       <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center gap-3">
@@ -87,52 +67,7 @@ export default function MapPageClient({ announcements }: Props) {
       </header>
 
       <div className="px-4 pt-3 pb-24">
-        {!mapOpen && (
-          <button
-            onClick={() => setMapOpen(true)}
-            style={{
-              height: 440, width: "100%", borderRadius: 16,
-              background: "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
-              border: "none", cursor: "pointer",
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center", gap: 12,
-            }}
-          >
-            <span style={{ fontSize: 48 }}>🗺️</span>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#1e40af" }}>Завантажити карту</span>
-            <span style={{ fontSize: 13, color: "#6b7280" }}>{count} оголошень з координатами</span>
-          </button>
-        )}
-        {mapOpen && !MapComp && !loadFailed && (
-          <div style={{
-            height: 440, width: "100%", borderRadius: 16,
-            background: "#E5E7EB", display: "flex",
-            alignItems: "center", justifyContent: "center",
-            color: "#9CA3AF", fontSize: 14,
-          }}>
-            Завантаження карти…
-          </div>
-        )}
-        {mapOpen && !MapComp && loadFailed && (
-          <div style={{
-            height: 440, width: "100%", borderRadius: 16,
-            background: "#FEF2F2", display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", gap: 12,
-          }}>
-            <span style={{ fontSize: 13, color: "#991B1B" }}>Не вдалося завантажити карту</span>
-            <button
-              onClick={() => window.location.reload()}
-              style={{
-                background: "#E53935", color: "white", border: "none",
-                borderRadius: 10, padding: "10px 24px", fontSize: 14,
-                fontWeight: 700, cursor: "pointer",
-              }}
-            >
-              🔄 Перезавантажити
-            </button>
-          </div>
-        )}
-        {mapOpen && MapComp && <MapComp announcements={announcements} />}
+        <LeafletMap announcements={announcements} />
         <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs text-[#9CA3AF]">
           <span className="flex items-center gap-1"><span style={{ color: "#5B8FD9" }}>●</span> Коло — точка відправлення</span>
           <span className="flex items-center gap-1"><span style={{ color: "#E53935" }}>📍</span> Крапля — пункт призначення</span>
