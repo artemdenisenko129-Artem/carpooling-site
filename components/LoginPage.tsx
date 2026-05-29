@@ -30,58 +30,74 @@ function GoogleIcon() {
   )
 }
 
+async function postTelegramAuth(
+  user: Record<string, string>,
+  callbackUrl: string,
+  router: ReturnType<typeof useRouter>,
+  setError: (e: string) => void,
+  setTgLoading: (v: boolean) => void
+) {
+  try {
+    const res = await fetch("/api/auth/telegram", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(user),
+    })
+    const data = await res.json()
+    if (data.ok) {
+      router.replace(callbackUrl)
+      router.refresh()
+    } else {
+      setError("Помилка Telegram авторизації")
+      setTgLoading(false)
+    }
+  } catch {
+    setError("Помилка з'єднання")
+    setTgLoading(false)
+  }
+}
+
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") || "/"
-
   const [googleLoading, setGoogleLoading] = useState(false)
   const [tgLoading, setTgLoading] = useState(false)
   const [error, setError] = useState(searchParams.get("error") ? "Помилка входу. Спробуй ще раз." : "")
   const tgRef = useRef<HTMLDivElement>(null)
 
+  // Redirect mode: Telegram повертається на сторінку з ?tgAuthResult=<base64>
   useEffect(() => {
-    const botName = "Poputtky_bot"
+    const params = new URLSearchParams(window.location.search)
+    const tgResult = params.get("tgAuthResult")
+    if (!tgResult) return
+    try {
+      const user = JSON.parse(atob(tgResult)) as Record<string, string>
+      setTgLoading(true)
+      postTelegramAuth(user, callbackUrl, router, setError, setTgLoading)
+    } catch {
+      setError("Не вдалося обробити відповідь Telegram")
+    }
+  }, [callbackUrl, router])
 
-    // Реєструємо глобальний callback — Telegram Widget його викличе після авторизації
-    window.onTelegramAuth = async (user: Record<string, string>) => {
+  // Popup mode: Widget викликає onTelegramAuth напряму
+  useEffect(() => {
+    window.onTelegramAuth = (user: Record<string, string>) => {
       setTgLoading(true)
       setError("")
-      try {
-        const res = await fetch("/api/auth/telegram", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(user),
-        })
-        const data = await res.json()
-        if (data.ok) {
-          router.replace(callbackUrl)
-          router.refresh()
-        } else {
-          setError("Помилка Telegram авторизації")
-          setTgLoading(false)
-        }
-      } catch {
-        setError("Помилка з'єднання")
-        setTgLoading(false)
-      }
+      postTelegramAuth(user, callbackUrl, router, setError, setTgLoading)
     }
-
-    // Динамічно вставляємо Telegram Widget script
     if (!tgRef.current) return
     tgRef.current.innerHTML = ""
     const script = document.createElement("script")
     script.src = "https://telegram.org/js/telegram-widget.js?22"
-    script.setAttribute("data-telegram-login", botName)
+    script.setAttribute("data-telegram-login", "Poputtky_bot")
     script.setAttribute("data-size", "large")
-    script.setAttribute("data-onauth", "onTelegramAuth(user)")
+    script.setAttribute("data-auth-url", window.location.origin + "/api/auth/telegram-callback?next=" + encodeURIComponent(callbackUrl))
     script.setAttribute("data-request-access", "write")
     script.async = true
     tgRef.current.appendChild(script)
-
-    return () => {
-      delete window.onTelegramAuth
-    }
+    return () => { delete window.onTelegramAuth }
   }, [callbackUrl, router])
 
   return (
@@ -101,7 +117,6 @@ function LoginContent() {
             Щоб розмістити оголошення або побачити контакти — увійдіть зручним способом.
           </p>
 
-          {/* Google */}
           <button
             onClick={() => { setGoogleLoading(true); window.location.href = "/api/auth/google?callbackUrl=" + encodeURIComponent(callbackUrl) }}
             disabled={googleLoading}
@@ -120,16 +135,14 @@ function LoginContent() {
             <div className="flex-1 h-px bg-[#E5E7EB]" />
           </div>
 
-          {/* Telegram Widget */}
           <div className="flex flex-col items-center gap-2 min-h-[52px]">
-            {tgLoading ? (
-              <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-                <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: "#E5E7EB", borderTopColor: "#229ED9" }} />
-                Входимо через Telegram…
-              </div>
-            ) : (
-              <div ref={tgRef} />
-            )}
+            {tgLoading
+              ? <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+                  <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: "#E5E7EB", borderTopColor: "#229ED9" }} />
+                  Входимо через Telegram…
+                </div>
+              : <div ref={tgRef} />
+            }
           </div>
 
           {error && <p className="text-xs text-[#E53935] text-center mt-3">{error}</p>}
