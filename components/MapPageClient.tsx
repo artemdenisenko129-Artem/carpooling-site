@@ -2,6 +2,7 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { useState } from "react"
+import { useSession, logout } from "../lib/useSession"
 
 const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
@@ -19,7 +20,7 @@ interface Props { announcements: Announcement[] }
 
 function LogoSVG() {
   return (
-    <svg width="24" height="30" viewBox="0 0 170 215" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg width="28" height="36" viewBox="0 0 170 215" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="M100 5C126 5 135 50 121 97C107 144 107 188 121 205" stroke="#1A1A2E" strokeWidth="42" strokeLinecap="round"/>
       <path d="M58 5C84 5 93 50 79 97C65 144 65 188 79 205" stroke="#5B8FD9" strokeWidth="42" strokeLinecap="round"/>
       <path d="M79 5C105 5 114 50 100 97C86 144 86 188 100 205" stroke="white" strokeWidth="5" strokeLinecap="round"/>
@@ -39,6 +40,7 @@ export default function MapPageClient({ announcements }: Props) {
   const [searchFrom, setSearchFrom] = useState("")
   const [searchTo, setSearchTo]   = useState("")
   const [roleFilter, setRoleFilter] = useState<"all"|"driver"|"passenger">("all")
+  const { user, isLoggedIn } = useSession()
 
   const filtered = announcements.filter(a => {
     if (roleFilter !== "all" && a.role !== roleFilter) return false
@@ -51,7 +53,7 @@ export default function MapPageClient({ announcements }: Props) {
     <div className="min-h-screen bg-[#F3F4F6]">
       {/* Закріплений верхній блок */}
       <div className="sticky top-0 z-50 bg-white shadow-sm">
-        <header className="border-b border-[#E5E7EB] px-4 py-3 flex items-center gap-3">
+        <header className="border-b border-[#E5E7EB] px-4 py-3 flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2 no-underline shrink-0">
             <LogoSVG />
             <div className="leading-tight">
@@ -59,39 +61,69 @@ export default function MapPageClient({ announcements }: Props) {
               <div className="text-[10px] text-[#9CA3AF] font-normal">приміські поїздки</div>
             </div>
           </Link>
+          {isLoggedIn ? (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-sm font-medium text-[#374151]">
+                👤 {user?.name?.split(" ")[0] || "Профіль"}
+              </span>
+              <button
+                className="border border-[#E5E7EB] rounded-full px-3 py-1.5 text-xs font-medium text-[#6B7280] bg-[#F9FAFB] transition-colors hover:border-[#E53935] hover:text-[#E53935]"
+                onClick={logout}
+              >
+                Вийти
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors no-underline"
+              style={{ background: "#5B8FD9" }}
+            >
+              Увійти
+            </Link>
+          )}
         </header>
 
         {/* Пошук */}
-        <div className="border-b border-[#E5E7EB] px-4 py-2 flex flex-col gap-2">
-          <div className="flex gap-2">
-            <input
-              value={searchFrom} onChange={e => setSearchFrom(e.target.value)}
-              placeholder="Звідки…"
-              className="flex-1 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm outline-none focus:border-[#5B8FD9]"
-            />
-            <input
-              value={searchTo} onChange={e => setSearchTo(e.target.value)}
-              placeholder="Куди…"
-              className="flex-1 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm outline-none focus:border-[#5B8FD9]"
-            />
+        <div className="border-b border-[#E5E7EB] px-4 pt-3 pb-0">
+          <div
+            className="flex items-stretch rounded-xl border mb-3"
+            style={{ background: "#F3F4F6", borderColor: "#E5E7EB" }}
+          >
+            <div className="flex flex-col items-center justify-center gap-1 px-3 py-3 shrink-0">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#5B8FD9" }} />
+              <div className="w-px h-4 bg-[#D1D5DB]" />
+              <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#E53935" }} />
+            </div>
+            <div className="flex-1 flex flex-col divide-y divide-[#E5E7EB]">
+              <input
+                value={searchFrom} onChange={e => setSearchFrom(e.target.value)}
+                placeholder="Звідки..."
+                className="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
+              />
+              <input
+                value={searchTo} onChange={e => setSearchTo(e.target.value)}
+                placeholder="Куди..."
+                className="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
+              />
+            </div>
             {(searchFrom || searchTo) && (
               <button onClick={() => { setSearchFrom(""); setSearchTo("") }}
-                className="text-[#9CA3AF] text-lg px-1">×</button>
+                className="px-4 text-lg text-[#9CA3AF]">×</button>
             )}
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex gap-2 pb-3 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
             {(["all","driver","passenger"] as const).map(r => (
               <button key={r} onClick={() => setRoleFilter(r)}
-                className="rounded-full px-3 py-1 text-xs font-semibold border transition-colors"
-                style={{
-                  background: roleFilter === r ? "#5B8FD9" : "white",
-                  color: roleFilter === r ? "white" : "#374151",
-                  borderColor: roleFilter === r ? "#5B8FD9" : "#E5E7EB",
-                }}>
-                {r === "all" ? "Всі" : r === "driver" ? "🚗 Водії" : "👤 Пасажири"}
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                style={roleFilter === r
+                  ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
+                  : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
+                {r === "all" ? "🚘 Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
               </button>
             ))}
-            <span className="ml-auto text-xs text-[#9CA3AF] self-center">{filtered.length} маршрутів</span>
+            <span className="ml-auto text-xs text-[#9CA3AF] self-center shrink-0">{filtered.length} маршрутів</span>
           </div>
         </div>
 
@@ -112,9 +144,9 @@ export default function MapPageClient({ announcements }: Props) {
             🗺 Карта
           </button>
         </div>
-      </div>{/* кінець sticky блоку */}
+      </div>
 
-      <div className="px-4 pt-3 pb-24">
+      <div className="pt-3 pb-24">
         <LeafletMap announcements={filtered} />
       </div>
 
