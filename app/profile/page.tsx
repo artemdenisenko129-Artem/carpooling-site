@@ -19,7 +19,7 @@ interface Announcement {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { isLoggedIn, user } = useSession()
+  const { isLoggedIn, user, loading: sessionLoading } = useSession()
   const [tab, setTab] = useState<"profile" | "announcements">("profile")
   const [phone, setPhone] = useState("")
   const [community, setCommunity] = useState("")
@@ -29,11 +29,12 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    if (sessionLoading) return // чекаємо поки сесія завантажиться
     if (!isLoggedIn) { router.replace("/login"); return }
     fetch("/api/profile")
       .then(r => r.json())
       .then(d => { setPhone(d.phone || ""); setCommunity(d.community || "") })
-  }, [isLoggedIn])
+  }, [isLoggedIn, sessionLoading])
 
   useEffect(() => {
     if (tab === "announcements") {
@@ -63,6 +64,12 @@ export default function ProfilePage() {
   }
 
   const inputCls = "w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#5B8FD9] transition-colors"
+
+  if (sessionLoading) return (
+    <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center">
+      <div className="w-6 h-6 rounded-full border-2 border-[#5B8FD9] border-t-transparent animate-spin" />
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
