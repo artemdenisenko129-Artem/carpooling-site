@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSession } from "../../../lib/session"
 import clientPromise from "../../../lib/db"
+import type { Sort } from "mongodb"
 
 const ADMIN_EMAIL = "artemdenisenko129@gmail.com"
 
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
   if (tab === "announcements") {
     const filter = searchParams.get("filter") || "active"
     const sortBy = searchParams.get("sort") || "date_desc"
-    const sortOrder: Record<string, Record<string, number>> = {
+    const sortOrder: Record<string, Sort> = {
       date_desc: { createdAt: -1 },
       date_asc: { createdAt: 1 },
       views: { views: -1, createdAt: -1 },
