@@ -47,7 +47,7 @@ export async function GET(request: Request) {
   if (tab === "announcements") {
     const filter = searchParams.get("filter") || "active"
     const sortBy = searchParams.get("sort") || "date_desc"
-    const sortOrder: Record<string, object> = {
+    const sortOrder: Record<string, Record<string, number>> = {
       date_desc: { createdAt: -1 },
       date_asc: { createdAt: 1 },
       views: { views: -1, createdAt: -1 },
