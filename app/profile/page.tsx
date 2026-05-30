@@ -125,43 +125,39 @@ export default function ProfilePage() {
 
         {tab === "profile" && (
           <div className="flex flex-col gap-4">
+
+            <div className="bg-[#EBF2FC] rounded-xl px-4 py-3">
+              <p className="text-xs text-[#3A6BBF] leading-relaxed">
+                Заповніть один раз — ці дані автоматично підставляться у форму нового оголошення. Всі поля необов'язкові.
+              </p>
+            </div>
+
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col gap-3">
               <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Контакти</p>
 
               <div>
                 <label className="block text-xs text-[#6B7280] mb-1">Telegram нікнейм</label>
-                {user?.telegramUsername ? (
-                  <div className="flex items-center gap-3 bg-[#F0FDF4] border border-[#D1FAE5] rounded-xl px-4 py-2.5">
-                    <span className="text-sm font-semibold text-[#065F46]">@{user.telegramUsername.replace("@", "")}</span>
-                    <span className="text-xs text-[#9CA3AF] ml-auto">верифіковано ✓</span>
-                  </div>
-                ) : (
-                  <>
-                    <input
-                      value={telegramHandle}
-                      onChange={e => {
-                        let v = e.target.value
-                        if (v && !v.startsWith("@")) v = "@" + v
-                        setTelegramHandle(v)
-                      }}
-                      placeholder="@your_username"
-                      className={inputCls}
-                    />
-                    <p className="text-xs text-[#9CA3AF] mt-1">
-                      Або <a href="/login" className="text-[#5B8FD9] underline">увійдіть через Telegram</a> для верифікації
-                    </p>
-                  </>
-                )}
+                <input
+                  value={telegramHandle}
+                  onChange={e => {
+                    let v = e.target.value
+                    if (v && !v.startsWith("@")) v = "@" + v
+                    setTelegramHandle(v)
+                  }}
+                  placeholder="@your_username"
+                  className={inputCls}
+                />
               </div>
 
               <div>
-                <label className="block text-xs text-[#6B7280] mb-1">Телефон або інший контакт</label>
+                <label className="block text-xs text-[#6B7280] mb-1">Засоби зв'язку</label>
                 <input
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  placeholder="+380 50 123 45 67 · @viber_nick"
+                  placeholder="Телефон, email, Viber, Instagram..."
                   className={inputCls}
                 />
+                <p className="text-xs text-[#9CA3AF] mt-1">Телефон, електронна пошта або інший месенджер</p>
               </div>
             </div>
 

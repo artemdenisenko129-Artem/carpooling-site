@@ -267,7 +267,7 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
                 style={{ background: "#5B8FD9" }}
                 onClick={() => router.push("/login")}
               >
-                Увійти через Telegram або Google
+                Увійти через Google
               </button>
             </>
           ) : (

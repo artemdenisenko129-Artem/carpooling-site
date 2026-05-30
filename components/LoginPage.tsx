@@ -1,10 +1,8 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Suspense } from "react"
-
-declare const window: Window & { onTelegramAuth?: (user: Record<string, string>) => void }
 
 function LogoSVG() {
   return (
@@ -30,75 +28,11 @@ function GoogleIcon() {
   )
 }
 
-async function postTelegramAuth(
-  user: Record<string, string>,
-  callbackUrl: string,
-  router: ReturnType<typeof useRouter>,
-  setError: (e: string) => void,
-  setTgLoading: (v: boolean) => void
-) {
-  try {
-    const res = await fetch("/api/auth/telegram", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user),
-    })
-    const data = await res.json()
-    if (data.ok) {
-      router.replace(callbackUrl)
-      router.refresh()
-    } else {
-      setError("Помилка Telegram авторизації")
-      setTgLoading(false)
-    }
-  } catch {
-    setError("Помилка з'єднання")
-    setTgLoading(false)
-  }
-}
-
 function LoginContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") || "/"
-  const [googleLoading, setGoogleLoading] = useState(false)
-  const [tgLoading, setTgLoading] = useState(false)
-  const [error, setError] = useState(searchParams.get("error") ? "Помилка входу. Спробуй ще раз." : "")
-  const tgRef = useRef<HTMLDivElement>(null)
-
-  // Redirect mode: Telegram повертається на сторінку з ?tgAuthResult=<base64>
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const tgResult = params.get("tgAuthResult")
-    if (!tgResult) return
-    try {
-      const user = JSON.parse(atob(tgResult)) as Record<string, string>
-      setTgLoading(true)
-      postTelegramAuth(user, callbackUrl, router, setError, setTgLoading)
-    } catch {
-      setError("Не вдалося обробити відповідь Telegram")
-    }
-  }, [callbackUrl, router])
-
-  // Popup mode: Widget викликає onTelegramAuth напряму
-  useEffect(() => {
-    window.onTelegramAuth = (user: Record<string, string>) => {
-      setTgLoading(true)
-      setError("")
-      postTelegramAuth(user, callbackUrl, router, setError, setTgLoading)
-    }
-    if (!tgRef.current) return
-    tgRef.current.innerHTML = ""
-    const script = document.createElement("script")
-    script.src = "https://telegram.org/js/telegram-widget.js?22"
-    script.setAttribute("data-telegram-login", "Poputtky_bot")
-    script.setAttribute("data-size", "large")
-    script.setAttribute("data-auth-url", window.location.origin + "/api/auth/telegram-callback?next=" + encodeURIComponent(callbackUrl))
-    script.setAttribute("data-request-access", "write")
-    script.async = true
-    tgRef.current.appendChild(script)
-    return () => { delete window.onTelegramAuth }
-  }, [callbackUrl, router])
+  const [loading, setLoading] = useState(false)
+  const [error] = useState(searchParams.get("error") ? "Помилка входу. Спробуй ще раз." : "")
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] flex flex-col items-center justify-center px-4">
@@ -114,42 +48,26 @@ function LoginContent() {
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
           <h2 className="text-lg font-bold text-[#111827] mb-1">Вхід до сервісу</h2>
           <p className="text-sm text-[#6B7280] mb-5">
-            Щоб розмістити оголошення або побачити контакти — увійдіть зручним способом.
+            Щоб розмістити оголошення або побачити контакти — увійдіть через Google.
           </p>
 
           <button
-            onClick={() => { setGoogleLoading(true); window.location.href = "/api/auth/google?callbackUrl=" + encodeURIComponent(callbackUrl) }}
-            disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-[#E5E7EB] bg-white text-sm font-semibold text-[#374151] mb-3 transition-colors"
+            onClick={() => { setLoading(true); window.location.href = "/api/auth/google?callbackUrl=" + encodeURIComponent(callbackUrl) }}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-[#E5E7EB] bg-white text-sm font-semibold text-[#374151] transition-colors"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}
           >
-            {googleLoading
+            {loading
               ? <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: "#E5E7EB", borderTopColor: "#374151" }} />
               : <GoogleIcon />}
-            {googleLoading ? "Перенаправлення..." : "Увійти через Google"}
+            {loading ? "Перенаправлення..." : "Увійти через Google"}
           </button>
-
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-[#E5E7EB]" />
-            <span className="text-xs text-[#9CA3AF]">або</span>
-            <div className="flex-1 h-px bg-[#E5E7EB]" />
-          </div>
-
-          <div className="flex flex-col items-center gap-2 min-h-[52px]">
-            {tgLoading
-              ? <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-                  <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: "#E5E7EB", borderTopColor: "#229ED9" }} />
-                  Входимо через Telegram…
-                </div>
-              : <div ref={tgRef} />
-            }
-          </div>
 
           {error && <p className="text-xs text-[#E53935] text-center mt-3">{error}</p>}
 
           <p className="text-[11px] text-[#9CA3AF] text-center leading-relaxed mt-4">
             Входячи, ви погоджуєтесь з{" "}
-            <a href="#" className="underline hover:text-[#5B8FD9]">Правилами сервісу</a>.
+            <a href="/rules" className="underline hover:text-[#5B8FD9]">Правилами сервісу</a>.
           </p>
         </div>
 

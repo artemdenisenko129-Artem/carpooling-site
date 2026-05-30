@@ -532,10 +532,10 @@ export default function NewAnnouncement() {
 
             <div>
               <label className="block text-xs text-[#6B7280] mb-1">
-                Інший контакт <span className="text-[#9CA3AF] normal-case">(якщо немає Telegram)</span>
+                Засоби зв'язку <span className="text-[#9CA3AF] normal-case">(телефон, email, Viber, Instagram...)</span>
               </label>
               <input type="text"
-                placeholder="Тел., Viber, Instagram..."
+                placeholder="+380 50 123 45 67 · email@example.com"
                 value={form.phone}
                 onChange={e => { setForm(f => ({ ...f, phone: e.target.value })); setErrors(err => ({ ...err, contact: "" })) }}
                 className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#5B8FD9]"
