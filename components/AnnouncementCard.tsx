@@ -145,7 +145,7 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
                   ? a.authorName
                   : "Анонімно"}
               </div>
-              <div className="text-xs text-[#9CA3AF]">{formatDate(a.createdAt)}</div>
+              <div className="text-xs text-[#9CA3AF]">{formatDate(a.createdAt ?? "")}</div>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
