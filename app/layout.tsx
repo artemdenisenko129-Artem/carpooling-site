@@ -26,7 +26,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="preconnect" href="https://tile.openstreetmap.org" />
         <link rel="preconnect" href="https://a.tile.openstreetmap.org" />
         <link rel="dns-prefetch" href="https://api.telegram.org" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
       </head>
       <body className="min-h-full">
         {children}
