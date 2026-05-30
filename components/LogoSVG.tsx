@@ -1,30 +1,19 @@
 export default function LogoSVG({ size = 40 }: { size?: number }) {
-  const h = size * 1.25
+  const h = Math.round(size * 1.4)
   return (
-    <svg width={size} height={h} viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Дорога — темний бордер */}
-      <path
-        d="M10 48 C10 34 32 30 32 20 C32 10 24 4 20 4"
-        stroke="#1A1A2E" strokeWidth="15" strokeLinecap="round"
-      />
-      {/* Дорога — синя поверхня */}
-      <path
-        d="M10 48 C10 34 32 30 32 20 C32 10 24 4 20 4"
-        stroke="#5B8FD9" strokeWidth="10" strokeLinecap="round"
-      />
-      {/* Центральна пунктирна лінія */}
-      <path
-        d="M10 48 C10 34 32 30 32 20 C32 10 24 4 20 4"
-        stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="5 5"
-      />
-
-      {/* Червоний маркер зверху */}
-      <path d="M20 15 C20 15 13 9 13 5.5 C13 2 16.1 0 20 0 C23.9 0 27 2 27 5.5 C27 9 20 15 20 15Z" fill="#E53935"/>
-      <circle cx="20" cy="5.5" r="2.5" fill="white"/>
-
-      {/* Синій маркер знизу-справа */}
-      <path d="M31 43 C31 43 25.5 37.5 25.5 34.5 C25.5 31.5 28 30 31 30 C34 30 36.5 31.5 36.5 34.5 C36.5 37.5 31 43 31 43Z" fill="#378ADD"/>
-      <circle cx="31" cy="34.5" r="2" fill="white"/>
+    <svg width={size} height={h} viewBox="0 0 40 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      {/* Чорна рамка */}
+      <rect width="40" height="56" rx="5" fill="#1A1A2E"/>
+      {/* Синя смуга (ліво) */}
+      <rect x="2" y="2" width="17" height="52" rx="2" fill="#5B8FD9"/>
+      {/* Біла смуга (право) */}
+      <rect x="21" y="2" width="17" height="52" rx="2" fill="white"/>
+      {/* Червоний маркер — далі, менший, біля обочини */}
+      <path d="M33,24 L28,16 A5,5,0,1,1,38,16 Z" fill="#E53935"/>
+      <circle cx="33" cy="13.5" r="1.8" fill="white"/>
+      {/* Синій маркер — ближче, більший, біля центру */}
+      <path d="M25,54 L18,43 A7,7,0,1,1,32,43 Z" fill="#5B8FD9"/>
+      <circle cx="25" cy="40" r="2.8" fill="white"/>
     </svg>
   )
 }
