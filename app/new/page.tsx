@@ -37,17 +37,21 @@ const DAYS = [
 
 const inputCls = "w-full bg-transparent px-3 py-2.5 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none"
 
+type Role = "driver" | "passenger" | ""
+type TripScope = "suburban" | "intercity" | ""
+type TripType = "regular" | "once" | ""
+
 export default function NewAnnouncement() {
   const router = useRouter()
   const { user } = useSession()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const mapSectionRef = useRef<HTMLDivElement>(null)
   const [mapTrigger, setMapTrigger] = useState<{ mode: "from" | "to"; t: number } | null>(null)
 
   const [form, setForm] = useState({
-    role: "driver",
-    tripScope: "suburban" as "suburban" | "intercity",
+    role: "" as Role,
+    tripScope: "" as TripScope,
     from: "",
     to: "",
     fromLat: null as number | null,
@@ -57,7 +61,7 @@ export default function NewAnnouncement() {
     waypoints: [] as { name: string; lat: number | null; lng: number | null }[],
     aiText: "",
     isRoundTrip: false,
-    tripType: "regular" as "regular" | "once",
+    tripType: "" as TripType,
     departureDate: "",
     schedule: [] as string[],
     departureTime: "",
@@ -69,6 +73,8 @@ export default function NewAnnouncement() {
     community: "",
   })
 
+  const [waypointTriggerIdx, setWaypointTriggerIdx] = useState<number | null>(null)
+
   useEffect(() => {
     if (user?.telegramUsername && !form.telegramUsername) {
       const tg = user.telegramUsername.startsWith("@")
@@ -76,8 +82,6 @@ export default function NewAnnouncement() {
       setForm(f => ({ ...f, telegramUsername: tg }))
     }
   }, [user])
-
-  const [waypointTriggerIdx, setWaypointTriggerIdx] = useState<number | null>(null)
 
   function activateMap(mode: "from" | "to") {
     setMapTrigger({ mode, t: Date.now() })
@@ -88,13 +92,21 @@ export default function NewAnnouncement() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    setError("")
-    if (!form.telegramUsername.trim() && !form.phone.trim()) {
-      setError("Вкажіть хоча б один спосіб зв'язку — Telegram або Засоби зв'язку")
-      setLoading(false)
+    const newErrors: Record<string, string> = {}
+    if (!form.role) newErrors.role = "Оберіть хто ви — водій чи пасажир"
+    if (!form.tripScope) newErrors.tripScope = "Оберіть тип маршруту"
+    if (!form.tripType) newErrors.tripType = "Оберіть як часто їдете"
+    if (!form.telegramUsername.trim() && !form.phone.trim()) newErrors.contact = "Вкажіть хоча б один спосіб зв'язку"
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      // Прокрутити до першої помилки
+      setTimeout(() => {
+        document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, 50)
       return
     }
+    setErrors({})
+    setLoading(true)
     try {
       const res = await fetch("/api/announcements", {
         method: "POST",
@@ -108,7 +120,7 @@ export default function NewAnnouncement() {
       router.push("/")
       router.refresh()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Невідома помилка")
+      setErrors({ general: err instanceof Error ? err.message : "Невідома помилка" })
     } finally {
       setLoading(false)
     }
@@ -126,7 +138,6 @@ export default function NewAnnouncement() {
     </button>
   )
 
-  /* ─── Вертикальна лінія маршруту ─── */
   const dotFrom = (
     <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#5B8FD9",
       border: "2.5px solid white", boxShadow: "0 0 0 2px #5B8FD9", flexShrink: 0 }} />
@@ -144,10 +155,18 @@ export default function NewAnnouncement() {
   )
   const line = <div style={{ width: 2, background: "#E5E7EB", flex: 1, minHeight: 8, margin: "2px 0" }} />
 
+  function errBox(key: string) {
+    if (!errors[key]) return null
+    return (
+      <p data-error className="text-xs text-[#E53935] mt-1.5 flex items-center gap-1">
+        <span>⚠</span> {errors[key]}
+      </p>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
 
-      {/* Хедер */}
       <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 no-underline">
           <LogoSVG />
@@ -163,20 +182,22 @@ export default function NewAnnouncement() {
       <div className="px-4 py-6 pb-10 max-w-lg mx-auto">
         <h1 className="text-2xl font-extrabold text-[#111827] mb-1">Нове оголошення</h1>
         <p className="text-sm text-[#9CA3AF] mb-6">
-          Заповни форму — оголошення з&#39;явиться на сайті та в Telegram-каналі
+          Розкажіть про свій маршрут — оголошення з'явиться на сайті та в Telegram-каналі
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          {/* ─── 1. Роль + Тип маршруту ─── */}
+          {/* ─── 1. Хто я ─── */}
           <div>
-            <div className="flex gap-3 mb-3">
+            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-2">Хто я</p>
+            <div className="flex gap-3 mb-3"
+              style={errors.role ? { borderRadius: 12, outline: "2px solid #E53935", outlineOffset: 2 } : {}}>
               {[
                 { val: "driver",    label: "🚗 Я — водій" },
                 { val: "passenger", label: "💺 Я — пасажир" },
               ].map(({ val, label }) => (
                 <button key={val} type="button"
-                  onClick={() => setForm(f => ({ ...f, role: val }))}
+                  onClick={() => { setForm(f => ({ ...f, role: val as Role })); setErrors(e => ({ ...e, role: "" })) }}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all"
                   style={form.role === val
                     ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }
@@ -184,13 +205,16 @@ export default function NewAnnouncement() {
                 >{label}</button>
               ))}
             </div>
-            <div className="flex gap-3">
+            {errBox("role")}
+
+            <div className="flex gap-3"
+              style={errors.tripScope ? { borderRadius: 12, outline: "2px solid #E53935", outlineOffset: 2 } : {}}>
               {([
                 { val: "suburban",  label: "🏘 Приміська/Міська" },
                 { val: "intercity", label: "🛣 Міжміська" },
               ] as const).map(({ val, label }) => (
                 <button key={val} type="button"
-                  onClick={() => setForm(f => ({ ...f, tripScope: val }))}
+                  onClick={() => { setForm(f => ({ ...f, tripScope: val })); setErrors(e => ({ ...e, tripScope: "" })) }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all"
                   style={form.tripScope === val
                     ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }
@@ -198,12 +222,12 @@ export default function NewAnnouncement() {
                 >{label}</button>
               ))}
             </div>
+            {errBox("tripScope")}
           </div>
 
-          {/* ─── 2. Блок маршруту (BlaBlaCar-style) ─── */}
+          {/* ─── 2. Маршрут ─── */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] px-4 py-3">
 
-            {/* Звідки */}
             <div className="flex items-stretch gap-3">
               <div className="flex flex-col items-center" style={{ width: 16, paddingTop: 14 }}>
                 {dotFrom}
@@ -225,13 +249,10 @@ export default function NewAnnouncement() {
               {pinBtn("from")}
             </div>
 
-            {/* Проміжні зупинки */}
             {form.waypoints.map((wp, idx) => (
               <div key={idx} className="flex items-stretch gap-3">
                 <div className="flex flex-col items-center" style={{ width: 16 }}>
-                  {line}
-                  {dotWay}
-                  {line}
+                  {line}{dotWay}{line}
                 </div>
                 <div className="flex-1 py-1">
                   <PlaceAutocomplete
@@ -247,43 +268,28 @@ export default function NewAnnouncement() {
                   />
                 </div>
                 <button type="button"
-                  onClick={() => {
-                    setWaypointTriggerIdx(idx)
-                    setTimeout(() => mapSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80)
-                  }}
-                  title="Вибрати на карті"
-                  className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+                  onClick={() => { setWaypointTriggerIdx(idx); setTimeout(() => mapSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80) }}
+                  className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg"
                   style={{ background: "#EBF2FC", color: "#3A6BBF", fontSize: 14 }}
                 >📍</button>
                 <button type="button"
                   onClick={() => setForm(f => ({ ...f, waypoints: f.waypoints.filter((_, i) => i !== idx) }))}
                   className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-[#9CA3AF] hover:text-[#E53935] hover:bg-[#FDECEA] transition-all"
-                  style={{ fontSize: 16 }}
                 >×</button>
               </div>
             ))}
 
-            {/* Кнопка додати зупинку */}
             <div className="flex items-center gap-3">
-              <div className="flex flex-col items-center" style={{ width: 16 }}>
-                {line}
-              </div>
+              <div className="flex flex-col items-center" style={{ width: 16 }}>{line}</div>
               <button type="button"
                 onClick={() => setForm(f => ({ ...f, waypoints: [...f.waypoints, { name: "", lat: null, lng: null }] }))}
-                className="text-xs font-medium py-1 transition-colors"
-                style={{ color: "#9CA3AF" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#5B8FD9")}
-                onMouseLeave={e => (e.currentTarget.style.color = "#9CA3AF")}
-              >
-                + Додати зупинку
-              </button>
+                className="text-xs font-medium py-1 text-[#9CA3AF] hover:text-[#5B8FD9] transition-colors"
+              >+ Додати зупинку</button>
             </div>
 
-            {/* Куди */}
             <div className="flex items-stretch gap-3">
               <div className="flex flex-col items-center" style={{ width: 16, paddingBottom: 4 }}>
-                {line}
-                {dotTo}
+                {line}{dotTo}
               </div>
               <div className="flex-1 py-1">
                 <PlaceAutocomplete
@@ -319,10 +325,10 @@ export default function NewAnnouncement() {
             </Suspense>
           </div>
 
-          {/* ─── 4. Опис маршруту ─── */}
+          {/* ─── 4. Опис ─── */}
           <div>
             <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
-              Опис маршруту
+              Розкажіть про маршрут
             </label>
             <textarea
               required
@@ -333,22 +339,22 @@ export default function NewAnnouncement() {
               className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#5B8FD9] resize-none"
             />
             <p className="text-xs text-[#9CA3AF] mt-1">
-              Вкажи час, дні, зупинки, кількість місць — все що важливо попутнику
+              Час виїзду, зупинки, кількість місць — все що може бути корисним
             </p>
           </div>
 
-          {/* ─── 5. Коли їдеш ─── */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col gap-3">
-            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Коли їдеш</p>
+          {/* ─── 5. Їду ─── */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col gap-3"
+            style={errors.tripType ? { borderColor: "#E53935" } : {}}>
+            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Їду</p>
 
-            {/* Тип поїздки */}
             <div className="flex gap-2">
               {([
                 { val: "regular", label: "🔄 Регулярно" },
                 { val: "once",    label: "📅 Одного разу" },
               ] as const).map(({ val, label }) => (
                 <button key={val} type="button"
-                  onClick={() => setForm(f => ({ ...f, tripType: val }))}
+                  onClick={() => { setForm(f => ({ ...f, tripType: val })); setErrors(e => ({ ...e, tripType: "" })) }}
                   className="flex-1 py-2 rounded-xl text-sm font-semibold border-2 transition-all"
                   style={form.tripType === val
                     ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }
@@ -356,8 +362,8 @@ export default function NewAnnouncement() {
                 >{label}</button>
               ))}
             </div>
+            {errBox("tripType")}
 
-            {/* Одноразова — дата */}
             {form.tripType === "once" && (
               <input type="date"
                 value={form.departureDate}
@@ -367,7 +373,6 @@ export default function NewAnnouncement() {
               />
             )}
 
-            {/* Регулярна — дні тижня */}
             {form.tripType === "regular" && (
               <div className="flex gap-1.5 flex-wrap">
                 {DAYS.map(({ key, label }) => (
@@ -387,17 +392,17 @@ export default function NewAnnouncement() {
               </div>
             )}
 
-            {/* Час відправлення */}
-            <div>
-              <label className="block text-xs text-[#6B7280] mb-1">Час виїзду</label>
-              <input type="time"
-                value={form.departureTime}
-                onChange={e => setForm(f => ({ ...f, departureTime: e.target.value }))}
-                className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] outline-none focus:border-[#5B8FD9]"
-              />
-            </div>
+            {form.tripType && (
+              <div>
+                <label className="block text-xs text-[#6B7280] mb-1">Час виїзду</label>
+                <input type="time"
+                  value={form.departureTime}
+                  onChange={e => setForm(f => ({ ...f, departureTime: e.target.value }))}
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] outline-none focus:border-[#5B8FD9]"
+                />
+              </div>
+            )}
 
-            {/* Туди і назад */}
             <label className="flex items-center gap-3 cursor-pointer select-none">
               <div
                 className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all shrink-0"
@@ -415,7 +420,6 @@ export default function NewAnnouncement() {
               <span className="text-sm text-[#374151] font-medium">↩ Їду туди і назад</span>
             </label>
 
-            {/* Повернення */}
             {form.isRoundTrip && (
               <div className="pl-8 flex flex-col gap-2 border-l-2 border-[#EBF2FC] ml-2">
                 {form.tripType === "once" && (
@@ -441,11 +445,10 @@ export default function NewAnnouncement() {
             )}
           </div>
 
-          {/* ─── 6. Деталі ─── */}
+          {/* ─── 6. Додатково ─── */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col gap-3">
-            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Деталі</p>
+            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Додатково</p>
 
-            {/* Кількість місць */}
             {form.role === "driver" && (
               <div>
                 <label className="block text-xs text-[#6B7280] mb-2">Вільних місць</label>
@@ -463,10 +466,9 @@ export default function NewAnnouncement() {
               </div>
             )}
 
-            {/* Спільнота */}
             <div>
               <label className="block text-xs text-[#6B7280] mb-1">
-                Спільнота <span className="text-[#9CA3AF] normal-case">(необов&#39;язково)</span>
+                Спільнота <span className="text-[#9CA3AF] normal-case">(необов'язково)</span>
               </label>
               <input type="text"
                 placeholder="ЖК Новий Автограф, КПІ, Samsung Ukraine..."
@@ -479,10 +481,10 @@ export default function NewAnnouncement() {
           </div>
 
           {/* ─── 7. Контакти ─── */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col gap-3">
-            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Контакти</p>
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col gap-3"
+            style={errors.contact ? { borderColor: "#E53935" } : {}}>
+            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Як зв'язатися</p>
 
-            {/* Telegram */}
             <div>
               <label className="block text-xs text-[#6B7280] mb-1">Telegram</label>
               {user?.telegramUsername ? (
@@ -503,49 +505,43 @@ export default function NewAnnouncement() {
                     let val = e.target.value
                     if (val && !val.startsWith("@")) val = "@" + val
                     setForm(f => ({ ...f, telegramUsername: val }))
+                    setErrors(err => ({ ...err, contact: "" }))
                   }}
                   className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#5B8FD9]"
                 />
               )}
             </div>
 
-            {/* Засоби зв'язку */}
             <div>
               <label className="block text-xs text-[#6B7280] mb-1">
-                Засоби зв&#39;язку <span className="text-[#9CA3AF] normal-case">(якщо немає Telegram)</span>
+                Інший контакт <span className="text-[#9CA3AF] normal-case">(якщо немає Telegram)</span>
               </label>
               <input type="text"
-                placeholder="Тел., Viber, Instagram, інший мессенджер"
+                placeholder="Тел., Viber, Instagram..."
                 value={form.phone}
-                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                onChange={e => { setForm(f => ({ ...f, phone: e.target.value })); setErrors(err => ({ ...err, contact: "" })) }}
                 className="w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#5B8FD9]"
               />
-              <p className="text-xs text-[#9CA3AF] mt-1">Напр.: +380 50 123 45 67 · @viber_nick</p>
             </div>
-
-            <p className="text-xs text-[#9CA3AF]">
-              Потрібен хоча б один спосіб зв&#39;язку
-            </p>
+            {errBox("contact")}
           </div>
 
-          {/* ─── Помилка ─── */}
-          {error && (
+          {errors.general && (
             <div className="bg-[#FDECEA] border border-[#FECACA] rounded-xl px-4 py-3">
-              <p className="text-sm text-[#E53935] font-medium">{error}</p>
+              <p className="text-sm text-[#E53935] font-medium">{errors.general}</p>
             </div>
           )}
 
-          {/* ─── Кнопка ─── */}
           <button type="submit" disabled={loading}
             className="w-full py-4 rounded-2xl text-base font-bold text-white transition-all disabled:opacity-60"
             style={{ background: "#5B8FD9", boxShadow: "0 4px 16px rgba(91,143,217,0.4)" }}
           >
-            {loading ? "Публікую..." : "Опублікувати оголошення"}
+            {loading ? "Публікую..." : "Опублікувати"}
           </button>
 
           <p className="text-xs text-center text-[#9CA3AF]">
-            Публікуючи, ти погоджуєшся з{" "}
-            <a href="#" className="underline" style={{ color: "#5B8FD9" }}>правилами сайту</a>
+            Публікуючи, ви погоджуєтесь з{" "}
+            <a href="/rules" className="underline" style={{ color: "#5B8FD9" }}>правилами сервісу</a>
           </p>
         </form>
       </div>
