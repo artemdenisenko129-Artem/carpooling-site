@@ -6,6 +6,7 @@ import dynamic from "next/dynamic"
 import { useSession, logout } from "../lib/useSession"
 import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
+import MapErrorBoundary from "./MapErrorBoundary"
 
 const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
@@ -130,8 +131,12 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
           {isLoggedIn ? (
             <div className="flex items-center gap-2 shrink-0">
-              <Link href="/profile" className="text-sm font-medium text-[#374151] no-underline hover:text-[#5B8FD9] transition-colors">
-                👤 {user?.name?.split(" ")[0] || "Профіль"}
+              <Link
+                href="/profile"
+                className="rounded-full px-3 py-1.5 text-xs font-semibold no-underline border transition-colors"
+                style={{ background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }}
+              >
+                👤 Кабінет
               </Link>
               <button
                 className="border border-[#E5E7EB] rounded-full px-3 py-1.5 text-xs font-medium text-[#6B7280] bg-[#F9FAFB] transition-colors hover:border-[#E53935] hover:text-[#E53935]"
@@ -301,7 +306,9 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
       {/* Карта */}
       {view === "map" && (
         <div className="pb-24">
-          <LeafletMap announcements={filtered} />
+          <MapErrorBoundary>
+            <LeafletMap announcements={filtered} />
+          </MapErrorBoundary>
         </div>
       )}
 
