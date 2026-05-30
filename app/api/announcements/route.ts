@@ -13,7 +13,6 @@ async function postToChannel(doc: any): Promise<number | null> {
   if (!BOT_TOKEN || !CHANNEL_ID) return null
 
   const role = doc.role === "driver" ? "🚗 <b>Водій</b>" : "💺 <b>Пасажир</b>"
-  const scope = doc.tripScope === "intercity" ? " · міжміська" : " · приміська"
 
   // Маршрут з проміжними зупинками
   const waypts = Array.isArray(doc.waypoints) && doc.waypoints.length > 0
@@ -42,7 +41,6 @@ async function postToChannel(doc: any): Promise<number | null> {
     const word = doc.seats === 1 ? "місце" : doc.seats < 5 ? "місця" : "місць"
     details.push("👤 " + doc.seats + " " + word)
   }
-  if (doc.community) details.push("🏘 " + doc.community)
 
   // Контакт
   const contact = doc.telegramUsername
@@ -56,7 +54,7 @@ async function postToChannel(doc: any): Promise<number | null> {
   const siteUrl = "https://carpooling-site.vercel.app"
 
   const lines = [
-    role + scope,
+    role,
     "📍 " + route,
     when,
     timing,
@@ -64,7 +62,7 @@ async function postToChannel(doc: any): Promise<number | null> {
     description,
     "",
     contact,
-    "🌐 " + siteUrl,
+    "🔗 " + siteUrl,
   ].filter(l => l !== null && l !== undefined && l !== "")
 
   const text = lines.join("\n")
