@@ -303,14 +303,12 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* Карта */}
-      {view === "map" && (
-        <div className="pb-24">
-          <MapErrorBoundary>
-            <LeafletMap announcements={filtered} />
-          </MapErrorBoundary>
-        </div>
-      )}
+      {/* Карта — завжди в DOM, тільки ховаємо */}
+      <div style={{ display: view === "map" ? "block" : "none" }} className="pb-24">
+        <MapErrorBoundary>
+          <LeafletMap announcements={filtered} />
+        </MapErrorBoundary>
+      </div>
 
       {/* Футер — тільки в режимі списку */}
       {view === "list" && (

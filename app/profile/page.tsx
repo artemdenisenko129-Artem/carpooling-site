@@ -23,6 +23,7 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<"profile" | "announcements">("profile")
   const [phone, setPhone] = useState("")
   const [community, setCommunity] = useState("")
+  const [telegramHandle, setTelegramHandle] = useState("")
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
@@ -33,7 +34,7 @@ export default function ProfilePage() {
     if (!isLoggedIn) { router.replace("/login"); return }
     fetch("/api/profile")
       .then(r => r.json())
-      .then(d => { setPhone(d.phone || ""); setCommunity(d.community || "") })
+      .then(d => { setPhone(d.phone || ""); setCommunity(d.community || ""); setTelegramHandle(d.telegramHandle || "") })
   }, [isLoggedIn, sessionLoading])
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function ProfilePage() {
     await fetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, community }),
+      body: JSON.stringify({ phone, community, telegramHandle }),
     })
     setSaving(false)
     setSaved(true)
@@ -61,6 +62,12 @@ export default function ProfilePage() {
     if (!confirm("Деактивувати оголошення?")) return
     await fetch(`/api/announcements/${id}`, { method: "DELETE" })
     setAnnouncements(prev => prev.filter(a => a._id !== id))
+  }
+
+  async function handleDeleteAccount() {
+    if (!confirm("Видалити акаунт? Всі ваші дані будуть видалені. Цю дію не можна скасувати.")) return
+    await fetch("/api/auth/delete-account", { method: "DELETE" })
+    window.location.href = "/"
   }
 
   const inputCls = "w-full bg-white border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none focus:border-[#5B8FD9] transition-colors"
@@ -119,15 +126,27 @@ export default function ProfilePage() {
               <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Контакти</p>
 
               <div>
-                <label className="block text-xs text-[#6B7280] mb-1">Telegram</label>
-                <div className="flex items-center gap-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-4 py-2.5">
-                  <span className="text-sm text-[#6B7280]">
-                    {user?.telegramUsername
-                      ? `@${user.telegramUsername.replace("@", "")}`
-                      : "Не підключено"}
-                  </span>
-                </div>
-                <p className="text-xs text-[#9CA3AF] mt-1">Telegram прив'язується при вході через Telegram</p>
+                <label className="block text-xs text-[#6B7280] mb-1">Telegram нікнейм</label>
+                {user?.telegramUsername ? (
+                  <div className="flex items-center gap-3 bg-[#F0FDF4] border border-[#D1FAE5] rounded-xl px-4 py-2.5">
+                    <span className="text-sm font-semibold text-[#065F46]">@{user.telegramUsername.replace("@", "")}</span>
+                    <span className="text-xs text-[#9CA3AF] ml-auto">верифіковано ✓</span>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      value={telegramHandle}
+                      onChange={e => {
+                        let v = e.target.value
+                        if (v && !v.startsWith("@")) v = "@" + v
+                        setTelegramHandle(v)
+                      }}
+                      placeholder="@your_username"
+                      className={inputCls}
+                    />
+                    <p className="text-xs text-[#9CA3AF] mt-1">Або <a href="/login" className="text-[#5B8FD9] underline">увійдіть через Telegram</a> для верифікації</p>
+                  </>
+                )}
               </div>
 
               <div>
@@ -166,6 +185,11 @@ export default function ProfilePage() {
               style={{ borderColor: "#5B8FD9", color: "#5B8FD9" }}>
               + Нове оголошення
             </Link>
+
+            <button onClick={handleDeleteAccount}
+              className="w-full py-2.5 rounded-xl text-xs font-medium text-[#9CA3AF] border border-[#E5E7EB] hover:border-[#E53935] hover:text-[#E53935] transition-all bg-white">
+              Видалити акаунт
+            </button>
           </div>
         )}
 
@@ -201,15 +225,4 @@ export default function ProfilePage() {
                   {(a.waypoints ?? []).map((w, i) => <span key={i}> → {w.name}</span>)}
                   {" → "}{a.to}
                 </p>
-                <p className="text-xs text-[#9CA3AF]">
-                  {new Date(a.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}
-                </p>
-                <p className="text-xs text-[#6B7280] mt-1 line-clamp-2">{a.aiText}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
+         

@@ -14,18 +14,19 @@ export async function GET() {
     image: session.image ?? null,
     phone: profile?.phone ?? "",
     community: profile?.community ?? "",
+    telegramHandle: profile?.telegramHandle ?? "",
   })
 }
 
 export async function PUT(request: Request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const { phone, community } = await request.json()
+  const { phone, community, telegramHandle } = await request.json()
   const client = await clientPromise
   const db = client.db("carpooling")
   await db.collection("profiles").updateOne(
     { userId: session.id },
-    { $set: { userId: session.id, phone: phone ?? "", community: community ?? "", updatedAt: new Date() } },
+    { $set: { userId: session.id, phone: phone ?? "", community: community ?? "", telegramHandle: telegramHandle ?? "", updatedAt: new Date() } },
     { upsert: true }
   )
   return NextResponse.json({ ok: true })
