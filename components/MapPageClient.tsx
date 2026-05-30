@@ -2,6 +2,7 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { useSession, logout } from "../lib/useSession"
 import LogoSVG from "./LogoSVG"
 
@@ -27,6 +28,8 @@ export default function MapPageClient({ announcements }: Props) {
   const [searchTo, setSearchTo]   = useState("")
   const [roleFilter, setRoleFilter] = useState<"all"|"driver"|"passenger">("all")
   const { user, isLoggedIn } = useSession()
+  const searchParams = useSearchParams()
+  const highlightId = searchParams.get("id") ?? undefined
 
   const filtered = announcements.filter(a => {
     if (roleFilter !== "all" && a.role !== roleFilter) return false
@@ -133,7 +136,7 @@ export default function MapPageClient({ announcements }: Props) {
       </div>
 
       <div className="pt-3 pb-24">
-        <LeafletMap announcements={filtered} />
+        <LeafletMap announcements={filtered} highlightId={highlightId} />
       </div>
 
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-4 pb-5 pt-3 pointer-events-none"

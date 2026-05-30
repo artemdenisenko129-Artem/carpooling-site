@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import clientPromise from "../../lib/db"
 import MapPageClient from "../../components/MapPageClient"
 
@@ -32,5 +33,9 @@ export default async function MapPage() {
     announcements = await getMapAnnouncements()
   } catch (_) {}
 
-  return <MapPageClient announcements={announcements} />
+  return (
+    <Suspense>
+      <MapPageClient announcements={announcements} />
+    </Suspense>
+  )
 }

@@ -290,6 +290,16 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
               {!a.telegramUsername && !a.phone && (
                 <p className="text-sm text-[#9CA3AF] text-center py-2">Автор не вказав контакт</p>
               )}
+              {(a.fromLat != null && a.toLat != null) && (
+                <a
+                  href={`/map?id=${a._id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold no-underline transition-colors mt-1"
+                  style={{ background: "#F0FDF4", color: "#16A34A", border: "1.5px solid #4ADE80" }}
+                >
+                  🗺 Показати на карті
+                </a>
+              )}
             </div>
           )}
         </div>

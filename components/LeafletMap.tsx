@@ -6,6 +6,7 @@ declare const window: Window & { L: any }
 
 interface Props {
   announcements: Announcement[]
+  highlightId?: string
 }
 
 const DRIVER_COLOR   = "#E24B4A"
@@ -47,7 +48,7 @@ function makeIcon(L: any, role: "driver"|"passenger", isEnd: boolean, active: bo
   return L.divIcon({ className: "", html, iconSize: [dotSize, dotSize], iconAnchor: [dotSize/2, dotSize/2] })
 }
 
-export default function LeafletMap({ announcements }: Props) {
+export default function LeafletMap({ announcements, highlightId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const layersRef = useRef<any[]>([])
@@ -162,9 +163,14 @@ export default function LeafletMap({ announcements }: Props) {
       })
       layersRef.current.push(routeLine)
       latlngs.forEach(ll => allPoints.push(ll))
+
+      if (highlightId && String(a._id) === highlightId) {
+        setTimeout(() => activate(L, markers, routeLine, a), 300)
+      }
     })
 
-    if (allPoints.length) map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 11 })
+    if (!highlightId && allPoints.length) map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 11 })
+    if (highlightId && allPoints.length) map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 11 })
   }
 
   function handleLocate() {
