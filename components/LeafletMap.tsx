@@ -27,22 +27,23 @@ function tearHtml(color: string, label: string) {
     `</div>`
 }
 
+const INACTIVE_RING = "#FBBF24"
+
 function makeIcon(L: any, role: "driver"|"passenger", isEnd: boolean, active: boolean) {
   const label = role === "driver" ? "В" : "П"
-  // Кінцева точка (куди): великий яскравий маркер кольору ролі
-  // Початкова і проміжні: маленький сірий
   if (isEnd) {
     const color = active ? (role === "driver" ? DRIVER_COLOR : PASSENGER_COLOR) : INACTIVE_COLOR
+    const border = active ? "white" : INACTIVE_RING
     const size = active ? 28 : 22
     const html = `<div style="width:${size}px;height:${size+6}px;position:relative">` +
-      `<div style="position:absolute;top:0;left:${(size-size*0.85)/2}px;width:${size*0.85}px;height:${size*0.85}px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>` +
+      `<div style="position:absolute;top:0;left:${(size-size*0.85)/2}px;width:${size*0.85}px;height:${size*0.85}px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid ${border};box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>` +
       `<div style="position:absolute;top:1px;left:0;width:${size}px;height:${size*0.85}px;display:flex;align-items:center;justify-content:center;font-size:${active?11:9}px;font-weight:700;color:white;font-family:sans-serif">${label}</div>` +
       `</div>`
     return L.divIcon({ className: "", html, iconSize: [size, size+6], iconAnchor: [size/2, size+6] })
   }
-  // Початкова/проміжна — маленька сіра крапка
+  // Початкова/проміжна — маленька сіра крапка з жовтим кільцем
   const dotSize = 10
-  const html = `<div style="width:${dotSize}px;height:${dotSize}px;background:#B4B2A9;border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div>`
+  const html = `<div style="width:${dotSize}px;height:${dotSize}px;background:#B4B2A9;border-radius:50%;border:2px solid ${INACTIVE_RING};box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div>`
   return L.divIcon({ className: "", html, iconSize: [dotSize, dotSize], iconAnchor: [dotSize/2, dotSize/2] })
 }
 
@@ -50,7 +51,6 @@ export default function LeafletMap({ announcements }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const layersRef = useRef<any[]>([])
-  const clusterRef = useRef<any>(null)
   const activeRef = useRef<{ markers: any[]; line: any } | null>(null)
   const userMarkerRef = useRef<any>(null)
   const [sheet, setSheet] = useState<Announcement | null>(null)
@@ -69,7 +69,7 @@ export default function LeafletMap({ announcements }: Props) {
       initMap(L)
     }
     tryInit()
-    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; clusterRef.current = null; activeRef.current = null } }
+    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; activeRef.current = null } }
   }, [])
 
   function initMap(L: any) {
@@ -129,24 +129,10 @@ export default function LeafletMap({ announcements }: Props) {
   function renderMarkers(L: any, map: any) {
     layersRef.current.forEach(l => { try { map.removeLayer(l) } catch {} })
     layersRef.current = []
-    if (clusterRef.current) { try { map.removeLayer(clusterRef.current) } catch {} }
     deactivate(); setSheet(null)
 
     const withCoords = announcements.filter(a => a.fromLat != null && a.fromLng != null && a.toLat != null && a.toLng != null)
     if (!withCoords.length) return
-
-    const cluster = L.markerClusterGroup({
-      disableClusteringAtZoom: 9,
-      maxClusterRadius: 40,
-      showCoverageOnHover: false,
-      spiderfyOnMaxZoom: false,
-      zoomToBoundsOnClick: true,
-      iconCreateFunction: (c: any) => L.divIcon({
-        className: "",
-        html: `<div style="min-width:28px;height:28px;border-radius:14px;background:rgba(95,94,90,0.85);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;padding:0 6px;border:2px solid white">${c.getChildCount()}</div>`,
-        iconSize: [28, 28], iconAnchor: [14, 14],
-      }),
-    })
 
     const allPoints: [number, number][] = []
 
@@ -170,14 +156,14 @@ export default function LeafletMap({ announcements }: Props) {
         const m = L.marker([p.lat, p.lng], { icon: makeIcon(L, a.role, p.isEnd, false) })
         m._role = a.role; m._isEnd = p.isEnd
         m.on("click", (e: any) => { e.originalEvent?.stopPropagation(); activate(L, markers, routeLine, a) })
-        cluster.addLayer(m)
+        m.addTo(map)
+        layersRef.current.push(m)
         return m
       })
       layersRef.current.push(routeLine)
       latlngs.forEach(ll => allPoints.push(ll))
     })
 
-    cluster.addTo(map); clusterRef.current = cluster
     if (allPoints.length) map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 11 })
   }
 

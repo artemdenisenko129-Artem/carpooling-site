@@ -52,6 +52,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
   const [communityFilter, setCommunityFilter] = useState("")
+  const [communityFocus, setCommunityFocus] = useState(false)
 
   const { user, isLoggedIn } = useSession()
 
@@ -78,7 +79,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
     if (scopeFilter === "intercity" && a.tripScope !== "intercity") return false
     if (tripTypeFilter === "regular" && a.tripType !== "regular") return false
     if (tripTypeFilter === "once" && a.tripType !== "once") return false
-    if (communityFilter && !a.community?.toLowerCase().includes(communityFilter.toLowerCase())) return false
+    if (communityFilter && !a.community?.toLowerCase().includes(communityFilter.trim().toLowerCase())) return false
     return true
   })
 
@@ -213,21 +214,42 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               </button>
             ))}
 
-            <div className="shrink-0 flex items-center gap-1 rounded-full border px-2 py-1 transition-all"
-              style={communityFilter
-                ? { background: "#EBF2FC", borderColor: "#5B8FD9" }
-                : { background: "white", borderColor: "#D1D5DB" }}>
-              <span className="text-xs">🏘</span>
-              <input
-                value={communityFilter}
-                onChange={e => setCommunityFilter(e.target.value)}
-                placeholder="Спільнота"
-                className="text-xs outline-none bg-transparent w-20"
-                style={{ color: communityFilter ? "#3A6BBF" : "#374151" }}
-              />
-              {communityFilter && (
-                <button onClick={() => setCommunityFilter("")} className="text-[#9CA3AF] text-xs ml-0.5">✕</button>
-              )}
+            <div className="shrink-0 relative">
+              <div className="flex items-center gap-1 rounded-full border px-2 py-1 transition-all"
+                style={communityFilter
+                  ? { background: "#EBF2FC", borderColor: "#5B8FD9" }
+                  : { background: "white", borderColor: "#D1D5DB" }}>
+                <span className="text-xs">🏘</span>
+                <input
+                  value={communityFilter}
+                  onChange={e => setCommunityFilter(e.target.value)}
+                  onFocus={() => setCommunityFocus(true)}
+                  onBlur={() => setTimeout(() => setCommunityFocus(false), 150)}
+                  placeholder="Спільнота"
+                  className="text-xs outline-none bg-transparent w-20"
+                  style={{ color: communityFilter ? "#3A6BBF" : "#374151" }}
+                />
+                {communityFilter && (
+                  <button onClick={() => setCommunityFilter("")} className="text-[#9CA3AF] text-xs ml-0.5">✕</button>
+                )}
+              </div>
+              {communityFocus && (() => {
+                const term = communityFilter.trim().toLowerCase()
+                const options = Array.from(new Set(
+                  announcements.map(a => a.community).filter((c): c is string => !!c && c.toLowerCase().includes(term) && c.toLowerCase() !== term)
+                )).slice(0, 6)
+                return options.length > 0 ? (
+                  <div style={{ position: "absolute", top: "110%", left: 0, zIndex: 200, background: "white", border: "1px solid #E5E7EB", borderRadius: 10, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 140, overflow: "hidden" }}>
+                    {options.map(c => (
+                      <button key={c} onMouseDown={() => setCommunityFilter(c)}
+                        className="block w-full text-left px-3 py-1.5 text-xs hover:bg-[#EBF2FC] transition-colors"
+                        style={{ color: "#374151" }}>
+                        🏘 {c}
+                      </button>
+                    ))}
+                  </div>
+                ) : null
+              })()}
             </div>
           </div>
         </div>
