@@ -171,4 +171,8 @@ export default async function AnnouncementPage({ params }: Props) {
           className="block text-center py-3 rounded-xl text-sm font-semibold no-underline border-2 transition-all"
           style={{ borderColor: "#5B8FD9", color: "#5B8FD9" }}>
           ← Переглянути всі оголошення
-   
+        </Link>
+      </div>
+    </div>
+  )
+}
