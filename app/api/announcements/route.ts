@@ -6,15 +6,68 @@ const BOT_TOKEN = process.env.BOT_TOKEN
 const CHANNEL_ID = process.env.CHANNEL_ID
 const CHANNEL_USERNAME = process.env.NEXT_PUBLIC_CHANNEL_USERNAME || "poputky_ua"
 
+const DAY_LABELS: Record<string, string> = { mon:"Пн", tue:"Вт", wed:"Ср", thu:"Чт", fri:"Пт", sat:"Сб", sun:"Нд" }
+const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"]
+
 async function postToChannel(doc: any): Promise<number | null> {
-  if (!BOT_TOKEN || !CHANNEL_ID) {
-    console.error("BOT_TOKEN or CHANNEL_ID missing in .env.local")
-    return null
+  if (!BOT_TOKEN || !CHANNEL_ID) return null
+
+  const role = doc.role === "driver" ? "🚗 <b>Водій</b>" : "💺 <b>Пасажир</b>"
+  const scope = doc.tripScope === "intercity" ? " · міжміська" : " · приміська"
+
+  // Маршрут з проміжними зупинками
+  const waypts = Array.isArray(doc.waypoints) && doc.waypoints.length > 0
+    ? doc.waypoints.map((w: any) => w.name).join(" → ")
+    : ""
+  const route = [doc.from, waypts, doc.to].filter(Boolean).join(" → ")
+
+  // Коли їде
+  let when = ""
+  if (doc.tripType === "once" && doc.departureDate) {
+    const d = new Date(doc.departureDate)
+    when = "📅 " + d.toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" })
+  } else if (Array.isArray(doc.schedule) && doc.schedule.length > 0) {
+    const days = DAY_ORDER.filter(d => doc.schedule.includes(d)).map(d => DAY_LABELS[d]).join(", ")
+    when = "🔄 " + days
   }
-  const roleText = doc.role === "driver" ? "🚗 Водій" : "💺 Пасажир"
-  const route = (doc.from || "?") + " ⮕ " + (doc.to || "?")
-  const username = doc.telegramUsername ? "@" + doc.telegramUsername : ""
-  const text = roleText + "\n📍 " + route + "\n\n" + doc.aiText + (username ? "\n\n📩 " + username : "")
+
+  // Час
+  let timing = ""
+  if (doc.departureTime) timing += "🕐 Виїзд: " + doc.departureTime
+  if (doc.isRoundTrip && doc.returnTime) timing += (timing ? "  " : "") + "↩ Назад: " + doc.returnTime
+
+  // Деталі
+  const details: string[] = []
+  if (doc.seats && doc.seats > 0) {
+    const word = doc.seats === 1 ? "місце" : doc.seats < 5 ? "місця" : "місць"
+    details.push("👤 " + doc.seats + " " + word)
+  }
+  if (doc.community) details.push("🏘 " + doc.community)
+
+  // Контакт
+  const contact = doc.telegramUsername
+    ? "📩 @" + doc.telegramUsername
+    : (doc.phone ? "📞 " + doc.phone : "")
+
+  // Опис
+  const description = doc.aiText ? "\n\n" + doc.aiText : ""
+
+  // Посилання
+  const siteUrl = "https://carpooling-site.vercel.app"
+
+  const lines = [
+    role + scope,
+    "📍 " + route,
+    when,
+    timing,
+    details.length > 0 ? details.join("  ·  ") : "",
+    description,
+    "",
+    contact,
+    "🌐 " + siteUrl,
+  ].filter(l => l !== null && l !== undefined && l !== "")
+
+  const text = lines.join("\n")
 
   try {
     const res = await fetch("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", {
