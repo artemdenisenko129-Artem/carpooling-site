@@ -57,7 +57,22 @@ export default function LeafletMap({ announcements }: Props) {
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
-    const L = window.L; if (!L) return
+    // Якщо Leaflet ще не завантажився — чекаємо до 5 секунд
+    let attempts = 0
+    function tryInit() {
+      const L = window.L
+      if (!L) {
+        if (++attempts < 25) { setTimeout(tryInit, 200); return }
+        return // не завантажився за 5 сек — тихо виходимо
+      }
+      initMap(L)
+    }
+    tryInit()
+    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; clusterRef.current = null; activeRef.current = null } }
+  }, [])
+
+  function initMap(L: any) {
+    if (!containerRef.current || mapRef.current) return
 
     const map = L.map(containerRef.current, { center: [49.5, 31.5], zoom: 6, zoomControl: true, scrollWheelZoom: false })
 
@@ -77,8 +92,7 @@ export default function LeafletMap({ announcements }: Props) {
     mapRef.current = map
     setTimeout(() => map.invalidateSize(), 0)
     renderMarkers(L, map)
-    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; clusterRef.current = null; activeRef.current = null } }
-  }, [])
+  }
 
   useEffect(() => {
     if (!mapRef.current || !window.L) return
