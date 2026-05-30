@@ -46,9 +46,15 @@ export async function GET(request: Request) {
 
   if (tab === "announcements") {
     const filter = searchParams.get("filter") || "active"
+    const sortBy = searchParams.get("sort") || "date_desc"
+    const sortOrder: Record<string, object> = {
+      date_desc: { createdAt: -1 },
+      date_asc: { createdAt: 1 },
+      views: { views: -1, createdAt: -1 },
+    }
     const query = filter === "all" ? {} : filter === "archived" ? { isActive: false } : { isActive: true }
     const [items, count] = await Promise.all([
-      db.collection("announcements").find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+      db.collection("announcements").find(query).sort(sortOrder[sortBy] ?? { createdAt: -1 }).skip(skip).limit(limit).toArray(),
       db.collection("announcements").countDocuments(query),
     ])
     return NextResponse.json({ items: JSON.parse(JSON.stringify(items)), count, page, pages: Math.ceil(count / limit) })
@@ -72,7 +78,8 @@ export async function DELETE(request: Request) {
   const session = await checkAdmin()
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-  const { id, action } = await request.json()
+  const body = await request.json()
+  const { id, action, ids } = body
   const client = await clientPromise
   const db = client.db("carpooling")
   const { ObjectId } = await import("mongodb")
@@ -91,6 +98,16 @@ export async function DELETE(request: Request) {
       { $set: { isActive: true }, $unset: { archivedAt: "", archiveReason: "" } }
     )
     return NextResponse.json({ ok: true })
+  }
+
+  // Bulk деактивація
+  if (action === "bulk_deactivate") {
+    const allIds = ids?.length ? ids : [id]
+    await db.collection("announcements").updateMany(
+      { _id: { $in: allIds.map((i: string) => new ObjectId(i)) } },
+      { $set: { isActive: false, archivedAt: new Date(), archiveReason: "admin_bulk" } }
+    )
+    return NextResponse.json({ ok: true, count: allIds.length })
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 })

@@ -13,7 +13,11 @@ async function getAnnouncement(id: string) {
     if (!ObjectId.isValid(id)) return null
     const client = await clientPromise
     const db = client.db("carpooling")
-    const item = await db.collection("announcements").findOne({ _id: new ObjectId(id) })
+    const item = await db.collection("announcements").findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $inc: { views: 1 } },
+      { returnDocument: "after" }
+    )
     if (!item) return null
     return JSON.parse(JSON.stringify(item))
   } catch {

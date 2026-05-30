@@ -3,13 +3,13 @@ import clientPromise from "../../../lib/db"
 import { getSession } from "../../../lib/session"
 
 const BOT_TOKEN = process.env.BOT_TOKEN
-const CHANNEL_ID = process.env.CHANNEL_ID
 const CHANNEL_USERNAME = process.env.NEXT_PUBLIC_CHANNEL_USERNAME || "poputky_ua"
+const CHANNEL_ID = process.env.CHANNEL_ID || "@" + CHANNEL_USERNAME
 
 const DAY_LABELS: Record<string, string> = { mon:"Пн", tue:"Вт", wed:"Ср", thu:"Чт", fri:"Пт", sat:"Сб", sun:"Нд" }
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"]
 
-async function postToChannel(doc: any): Promise<number | null> {
+async function postToChannel(doc: any, announcementId?: string): Promise<number | null> {
   if (!BOT_TOKEN || !CHANNEL_ID) return null
 
   const role = doc.role === "driver" ? "🚗 <b>Водій</b>" : "💺 <b>Пасажир</b>"
@@ -51,9 +51,6 @@ async function postToChannel(doc: any): Promise<number | null> {
   // Опис
   const description = doc.aiText ? "\n\n" + doc.aiText : ""
 
-  // Посилання
-  const siteUrl = "https://carpooling-site.vercel.app"
-
   const lines = [
     role,
     "📍 " + route,
@@ -63,7 +60,6 @@ async function postToChannel(doc: any): Promise<number | null> {
     description,
     "",
     contact,
-    "🔗 " + siteUrl,
   ].filter(l => l !== null && l !== undefined && l !== "")
 
   const text = lines.join("\n")
@@ -184,7 +180,7 @@ export async function POST(request: Request) {
 
     const result = await db.collection("announcements").insertOne(doc)
 
-    const channelMessageId = await postToChannel(doc)
+    const channelMessageId = await postToChannel(doc, result.insertedId.toString())
 
     if (channelMessageId) {
       await db.collection("announcements").updateOne(

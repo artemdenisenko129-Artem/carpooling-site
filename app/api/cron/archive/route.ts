@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // 1. Разові — дата вже минула
+  // Тільки одноразові поїздки з минулою датою — регулярні не чіпаємо ніколи
   const onceResult = await db.collection("announcements").updateMany(
     {
       isActive: true,
@@ -23,21 +23,6 @@ export async function GET(request: Request) {
     { $set: { isActive: false, archivedAt: new Date(), archiveReason: "date_passed" } }
   )
 
-  // 2. Регулярні — через 90 днів після публікації
-  const ninetyDaysAgo = new Date()
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
-
-  const regularResult = await db.collection("announcements").updateMany(
-    {
-      isActive: true,
-      $or: [{ tripType: "regular" }, { tripType: { $exists: false } }],
-      createdAt: { $lt: ninetyDaysAgo },
-    },
-    { $set: { isActive: false, archivedAt: new Date(), archiveReason: "expired_90d" } }
-  )
-
-  const total = onceResult.modifiedCount + regularResult.modifiedCount
-  console.log(`Cron archive: ${total} archived (once: ${onceResult.modifiedCount}, regular: ${regularResult.modifiedCount})`)
-
-  return NextResponse.json({ ok: true, archived: total, once: onceResult.modifiedCount, regular: regularResult.modifiedCount })
+  console.log(`Cron archive: ${onceResult.modifiedCount} one-time trips archived`)
+  return NextResponse.json({ ok: true, archived: onceResult.modifiedCount })
 }
