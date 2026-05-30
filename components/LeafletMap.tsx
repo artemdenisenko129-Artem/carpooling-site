@@ -27,7 +27,7 @@ function tearHtml(color: string, label: string) {
     `</div>`
 }
 
-const INACTIVE_RING = "#FBBF24"
+const INACTIVE_RING = "#FFE500"
 
 function makeIcon(L: any, role: "driver"|"passenger", isEnd: boolean, active: boolean) {
   const label = role === "driver" ? "В" : "П"
