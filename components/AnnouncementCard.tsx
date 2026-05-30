@@ -135,7 +135,7 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
                 : { background: "#FDECEA", color: "#E53935" }
               }
             >
-              {getInitials(a.telegramUsername, a.authorName)}
+              {getInitials(a.telegramUsername ?? "", a.authorName)}
             </div>
             <div className="min-w-0">
               <div className="text-sm font-semibold text-[#111827] truncate">
