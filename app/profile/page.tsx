@@ -11,9 +11,6 @@ interface Announcement {
   to: string
   aiText: string
   createdAt: string
-  isActive?: boolean
-  tripType?: string
-  departureDate?: string
   waypoints?: { name: string }[]
 }
 
@@ -30,11 +27,15 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (sessionLoading) return // чекаємо поки сесія завантажиться
+    if (sessionLoading) return
     if (!isLoggedIn) { router.replace("/login"); return }
     fetch("/api/profile")
       .then(r => r.json())
-      .then(d => { setPhone(d.phone || ""); setCommunity(d.community || ""); setTelegramHandle(d.telegramHandle || "") })
+      .then(d => {
+        setPhone(d.phone || "")
+        setCommunity(d.community || "")
+        setTelegramHandle(d.telegramHandle || "")
+      })
   }, [isLoggedIn, sessionLoading])
 
   useEffect(() => {
@@ -90,7 +91,6 @@ export default function ProfilePage() {
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-6 pb-16">
-        {/* Аватар і ім'я */}
         <div className="flex items-center gap-4 mb-6">
           <div className="w-14 h-14 rounded-full bg-[#EBF2FC] flex items-center justify-center text-2xl font-bold text-[#3A6BBF]">
             {user?.name?.charAt(0)?.toUpperCase() || "?"}
@@ -103,7 +103,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Вкладки */}
         <div className="flex border-b border-[#E5E7EB] mb-6">
           {([
             { key: "profile", label: "👤 Мій профіль" },
@@ -119,7 +118,6 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {/* Профіль */}
         {tab === "profile" && (
           <div className="flex flex-col gap-4">
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col gap-3">
@@ -144,7 +142,9 @@ export default function ProfilePage() {
                       placeholder="@your_username"
                       className={inputCls}
                     />
-                    <p className="text-xs text-[#9CA3AF] mt-1">Або <a href="/login" className="text-[#5B8FD9] underline">увійдіть через Telegram</a> для верифікації</p>
+                    <p className="text-xs text-[#9CA3AF] mt-1">
+                      Або <a href="/login" className="text-[#5B8FD9] underline">увійдіть через Telegram</a> для верифікації
+                    </p>
                   </>
                 )}
               </div>
@@ -170,7 +170,7 @@ export default function ProfilePage() {
                   placeholder="КПІ, ЖК Новий Автограф, Samsung Ukraine..."
                   className={inputCls}
                 />
-                <p className="text-xs text-[#9CA3AF] mt-1">ЖК, університет, компанія або район — буде автоматично підставлятись в оголошення</p>
+                <p className="text-xs text-[#9CA3AF] mt-1">Буде автоматично підставлятись в оголошення</p>
               </div>
             </div>
 
@@ -193,7 +193,6 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Мої оголошення */}
         {tab === "announcements" && (
           <div className="flex flex-col gap-3">
             {loading && <p className="text-sm text-[#9CA3AF] text-center py-8">Завантаження...</p>}
@@ -225,4 +224,15 @@ export default function ProfilePage() {
                   {(a.waypoints ?? []).map((w, i) => <span key={i}> → {w.name}</span>)}
                   {" → "}{a.to}
                 </p>
-         
+                <p className="text-xs text-[#9CA3AF]">
+                  {new Date(a.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}
+                </p>
+                <p className="text-xs text-[#6B7280] mt-1 line-clamp-2">{a.aiText}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
