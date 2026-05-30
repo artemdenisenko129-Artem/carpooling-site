@@ -249,8 +249,8 @@ export default function LeafletMap({ announcements }: Props) {
                 </a>
               : <div style={{ flex: 1, textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.4)", padding: "9px 0" }}>Увійдіть щоб написати</div>
             }
-            <a href={`/announcement/${sheet._id}`}
-              style={{ padding: "9px 12px", background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", borderRadius: 10, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}>
+            <a href={`/announcement/${sheet._id}?from=map`}
+              style={{ padding: "9px 12px", background: "rgba(34,197,94,0.15)", color: "#4ADE80", borderRadius: 10, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap", border: "1.5px solid #4ADE80", fontWeight: 700 }}>
               Деталі →
             </a>
           </div>

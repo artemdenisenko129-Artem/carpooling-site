@@ -1,8 +1,10 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import { Suspense } from "react"
 import clientPromise from "../../../lib/db"
 import { ObjectId } from "mongodb"
+import BackButton from "../../../components/BackButton"
 
 interface Props {
   params: Promise<{ id: string }>
@@ -80,9 +82,9 @@ export default async function AnnouncementPage({ params }: Props) {
         <Link href="/" className="text-base font-extrabold text-[#111827] no-underline">
           Попутки<span style={{ color: "#5B8FD9" }}>UA</span>
         </Link>
-        <Link href="/" className="text-sm text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">
-          ← Всі оголошення
-        </Link>
+        <Suspense fallback={<Link href="/" className="text-sm text-[#6B7280] no-underline">← Назад</Link>}>
+          <BackButton />
+        </Suspense>
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-6 pb-16">
