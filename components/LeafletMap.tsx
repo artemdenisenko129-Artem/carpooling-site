@@ -12,6 +12,8 @@ interface Announcement {
   fromLat?: number; fromLng?: number; toLat?: number; toLng?: number
   isRoundTrip?: boolean; returnTime?: string; departureTime?: string
   waypoints?: Waypoint[]; seats?: number
+  schedule?: string[]; departureDate?: string; tripType?: string
+  community?: string
 }
 
 interface Props {
@@ -223,29 +225,61 @@ export default function LeafletMap({ announcements }: Props) {
       <div ref={containerRef} style={{ height: 440, width: "100%", borderRadius: 16, overflow: "hidden" }} />
 
       {sheet && (
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(255,255,255,0.55)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderRadius: "14px 14px 0 0", boxShadow: "0 -2px 12px rgba(0,0,0,0.08)", padding: "8px 14px 14px" }}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(17,24,39,0.72)", borderRadius: "14px 14px 0 0", boxShadow: "0 -2px 16px rgba(0,0,0,0.25)", padding: "8px 14px 14px" }}
           onClick={e => e.stopPropagation()}>
-          <div style={{ width: 30, height: 3, borderRadius: 2, background: "#D1D5DB", margin: "0 auto 8px" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 7, background: sheet.role === "driver" ? "#FEE2E2" : "#DBEAFE", color: sheet.role === "driver" ? "#991B1B" : "#1E40AF", textTransform: "uppercase" }}>
+          <div style={{ width: 30, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.3)", margin: "0 auto 8px" }} />
+
+          {/* Рядок 1: роль + закрити */}
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 7, background: sheet.role === "driver" ? "#E53935" : "#229ED9", color: "white", textTransform: "uppercase" }}>
               {sheet.role === "driver" ? "Водій" : "Пасажир"}
             </span>
-            {sheet.isRoundTrip && <span style={{ fontSize: 10, color: "#6B7280", background: "#F3F4F6", padding: "2px 6px", borderRadius: 7 }}>↩ туди-назад</span>}
-            <button onClick={() => { deactivate(); setSheet(null) }} style={{ marginLeft: "auto", background: "none", border: "none", fontSize: 18, color: "#9CA3AF", cursor: "pointer", padding: 0, lineHeight: 1 }}>×</button>
+            {sheet.isRoundTrip && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 7 }}>↩ туди-назад</span>}
+            <button onClick={() => { deactivate(); setSheet(null) }} style={{ marginLeft: "auto", background: "none", border: "none", fontSize: 18, color: "rgba(255,255,255,0.5)", cursor: "pointer", padding: 0, lineHeight: 1 }}>×</button>
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 5 }}>{sheet.from} → {sheet.to}</div>
-          <div style={{ display: "flex", gap: 5, marginBottom: 9, flexWrap: "wrap" }}>
-            {sheet.departureTime && <span style={{ fontSize: 11, background: "#F3F4F6", color: "#374151", padding: "2px 7px", borderRadius: 7 }}>{sheet.departureTime}</span>}
-            {sheet.returnTime && <span style={{ fontSize: 11, background: "#D1FAE5", color: "#065F46", padding: "2px 7px", borderRadius: 7 }}>↩ {sheet.returnTime}</span>}
-            {(sheet.seats ?? 0) > 0 && <span style={{ fontSize: 11, background: "#F3F4F6", color: "#374151", padding: "2px 7px", borderRadius: 7 }}>{sheet.seats} {sheet.seats === 1 ? "місце" : (sheet.seats ?? 0) < 5 ? "місця" : "місць"}</span>}
+
+          {/* Маршрут */}
+          <div style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 5 }}>
+            {sheet.from}
+            {(sheet.waypoints ?? []).map((w, i) => <span key={i}> → {w.name}</span>)}
+            {" → "}{sheet.to}
           </div>
-          {sheet.telegramUsername
-            ? <a href={`https://t.me/${sheet.telegramUsername}`} target="_blank" rel="noopener noreferrer"
-                style={{ display: "block", textAlign: "center", padding: "9px 12px", background: "#229ED9", color: "white", borderRadius: 10, fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
-                Написати @{sheet.telegramUsername}
-              </a>
-            : <div style={{ textAlign: "center", fontSize: 12, color: "#9CA3AF" }}>Увійдіть, щоб побачити контакт</div>
-          }
+
+          {/* Чіпи: дата/дні, час, місця, спільнота */}
+          <div style={{ display: "flex", gap: 5, marginBottom: 8, flexWrap: "wrap" }}>
+            {sheet.tripType === "once" && sheet.departureDate && (
+              <span style={{ fontSize: 11, background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)", padding: "2px 7px", borderRadius: 7 }}>
+                📅 {new Date(sheet.departureDate).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}
+              </span>
+            )}
+            {sheet.tripType === "regular" && sheet.schedule && sheet.schedule.length > 0 && (
+              <span style={{ fontSize: 11, background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)", padding: "2px 7px", borderRadius: 7 }}>
+                🔄 {(["mon","tue","wed","thu","fri","sat","sun"] as const)
+                  .filter(d => sheet.schedule!.includes(d))
+                  .map(d => ({ mon:"Пн",tue:"Вт",wed:"Ср",thu:"Чт",fri:"Пт",sat:"Сб",sun:"Нд" }[d]))
+                  .join(", ")}
+              </span>
+            )}
+            {sheet.departureTime && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)", padding: "2px 7px", borderRadius: 7 }}>🕐 {sheet.departureTime}</span>}
+            {sheet.returnTime && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.12)", color: "#86EFAC", padding: "2px 7px", borderRadius: 7 }}>↩ {sheet.returnTime}</span>}
+            {(sheet.seats ?? 0) > 0 && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)", padding: "2px 7px", borderRadius: 7 }}>👤 {sheet.seats} {sheet.seats === 1 ? "місце" : (sheet.seats ?? 0) < 5 ? "місця" : "місць"}</span>}
+            {sheet.community && <span style={{ fontSize: 11, background: "rgba(91,143,217,0.3)", color: "#93C5FD", padding: "2px 7px", borderRadius: 7 }}>🏘 {sheet.community}</span>}
+          </div>
+
+          {/* Кнопки */}
+          <div style={{ display: "flex", gap: 8 }}>
+            {sheet.telegramUsername
+              ? <a href={`https://t.me/${sheet.telegramUsername}`} target="_blank" rel="noopener noreferrer"
+                  style={{ flex: 1, display: "block", textAlign: "center", padding: "9px 12px", background: "#229ED9", color: "white", borderRadius: 10, fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
+                  ✈️ @{sheet.telegramUsername}
+                </a>
+              : <div style={{ flex: 1, textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.4)", padding: "9px 0" }}>Увійдіть щоб написати</div>
+            }
+            <a href={`/?search=${encodeURIComponent(sheet.from)}`}
+              style={{ padding: "9px 12px", background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", borderRadius: 10, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}>
+              У списку →
+            </a>
+          </div>
         </div>
       )}
     </div>
