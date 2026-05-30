@@ -1,6 +1,6 @@
 "use client"
-import { useState, useTransition, Suspense } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useTransition, Suspense, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { useSession, logout } from "../lib/useSession"
@@ -26,9 +26,21 @@ interface Props {
 
 export default function FeedPage({ announcements, initialFrom, initialTo }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
   const [view, setView] = useState<View>("list")
   const [mapEverOpened, setMapEverOpened] = useState(false)
+  const [highlightId, setHighlightId] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    const v = searchParams.get("view")
+    const id = searchParams.get("id") ?? undefined
+    if (v === "map") {
+      setView("map")
+      setMapEverOpened(true)
+      setHighlightId(id)
+    }
+  }, [])
 
   const [fromVal, setFromVal] = useState(initialFrom)
   const [toVal, setToVal]   = useState(initialTo)
@@ -294,7 +306,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 <div className="w-8 h-8 rounded-full border-2 border-[#5B8FD9] border-t-transparent animate-spin" />
               </div>
             }>
-              <LeafletMap announcements={filtered} />
+              <LeafletMap announcements={filtered} highlightId={highlightId} />
             </Suspense>
           </MapErrorBoundary>
         </div>

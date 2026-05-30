@@ -292,7 +292,7 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
               )}
               {(a.fromLat != null && a.toLat != null) && (
                 <a
-                  href={`/map?id=${a._id}`}
+                  href={`/?view=map&id=${a._id}`}
                   onClick={(e) => e.stopPropagation()}
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold no-underline transition-colors mt-1"
                   style={{ background: "#F0FDF4", color: "#16A34A", border: "1.5px solid #4ADE80" }}

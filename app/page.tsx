@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import { Suspense } from "react"
 import clientPromise from "../lib/db"
 import FeedPage from "../components/FeedPage"
 import { SITE } from "../lib/seo-config"
@@ -87,10 +88,12 @@ export default async function Home({
   }
 
   return (
-    <FeedPage
-      announcements={announcements}
-      initialFrom={params.from ?? ""}
-      initialTo={params.to ?? ""}
-    />
+    <Suspense>
+      <FeedPage
+        announcements={announcements}
+        initialFrom={params.from ?? ""}
+        initialTo={params.to ?? ""}
+      />
+    </Suspense>
   )
 }
