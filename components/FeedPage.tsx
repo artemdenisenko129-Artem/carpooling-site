@@ -7,24 +7,9 @@ import { useSession, logout } from "../lib/useSession"
 import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
 import MapErrorBoundary from "./MapErrorBoundary"
+import LogoSVG from "./LogoSVG"
 
 const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
-
-function LogoSVG() {
-  return (
-    <svg width="28" height="36" viewBox="0 0 170 215" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M100 5C126 5 135 50 121 97C107 144 107 188 121 205" stroke="#1A1A2E" strokeWidth="42" strokeLinecap="round"/>
-      <path d="M58 5C84 5 93 50 79 97C65 144 65 188 79 205" stroke="#5B8FD9" strokeWidth="42" strokeLinecap="round"/>
-      <path d="M79 5C105 5 114 50 100 97C86 144 86 188 100 205" stroke="white" strokeWidth="5" strokeLinecap="round"/>
-      <path d="M58 2C41 2 28 16 28 33C28 51 58 79 58 79C58 79 88 51 88 33C88 16 75 2 58 2Z" fill="#E53935"/>
-      <circle cx="58" cy="31" r="13" fill="white"/>
-      <circle cx="58" cy="31" r="5.5" fill="#CC1111"/>
-      <path d="M103 143C91 143 80 153 80 165C80 178 103 201 103 201C103 201 126 178 126 165C126 153 115 143 103 143Z" fill="#5B8FD9"/>
-      <circle cx="103" cy="163" r="11" fill="white"/>
-      <circle cx="103" cy="163" r="4.5" fill="#3A6BBF"/>
-    </svg>
-  )
-}
 
 type RoleFilter = "all" | "driver" | "passenger"
 type ScopeFilter = "all" | "suburban" | "intercity"

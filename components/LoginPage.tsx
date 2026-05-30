@@ -3,19 +3,7 @@ import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Suspense } from "react"
-
-function LogoSVG() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8" stroke="#1a1a2e" strokeWidth="13" strokeLinecap="round" fill="none"/>
-      <path d="M18 70 Q18 50 38 48 Q58 46 58 26 Q58 10 42 8" stroke="#5B8FD9" strokeWidth="8" strokeLinecap="round" fill="none"/>
-      <circle cx="42" cy="8" r="9" fill="#E53935"/>
-      <circle cx="42" cy="8" r="3.5" fill="white"/>
-      <circle cx="18" cy="70" r="9" fill="#5B8FD9"/>
-      <circle cx="18" cy="70" r="3.5" fill="white"/>
-    </svg>
-  )
-}
+import LogoSVG from "./LogoSVG"
 
 function GoogleIcon() {
   return (
