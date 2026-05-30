@@ -1,5 +1,5 @@
 "use client"
-import { useState, useTransition } from "react"
+import { useState, useTransition, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import dynamic from "next/dynamic"
@@ -308,7 +308,13 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
       {/* Карта — завжди в DOM, тільки ховаємо */}
       <div style={{ display: view === "map" ? "block" : "none" }} className="pb-24">
         <MapErrorBoundary>
-          <LeafletMap announcements={filtered} />
+          <Suspense fallback={
+            <div className="flex items-center justify-center" style={{ height: 440 }}>
+              <div className="w-8 h-8 rounded-full border-2 border-[#5B8FD9] border-t-transparent animate-spin" />
+            </div>
+          }>
+            <LeafletMap announcements={filtered} />
+          </Suspense>
         </MapErrorBoundary>
       </div>
 

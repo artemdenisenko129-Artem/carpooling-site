@@ -127,6 +127,13 @@ export default function LeafletMap({ announcements }: Props) {
     line.setStyle({ opacity: 0.75 })
     activeRef.current = { markers, line }
     setSheet(ann)
+    // Авто-підгонка карти щоб показати весь маршрут
+    const latlngs = markers.map((mk: any) => mk.getLatLng())
+    if (latlngs.length > 1 && mapRef.current) {
+      mapRef.current.fitBounds(L.latLngBounds(latlngs), { padding: [60, 60], maxZoom: 13, animate: true })
+    } else if (latlngs.length === 1 && mapRef.current) {
+      mapRef.current.setView(latlngs[0], 12, { animate: true })
+    }
   }
 
   function renderMarkers(L: any, map: any) {
@@ -208,7 +215,7 @@ export default function LeafletMap({ announcements }: Props) {
       <div ref={containerRef} style={{ height: 440, width: "100%", borderRadius: 16, overflow: "hidden" }} />
 
       {sheet && (
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(255,255,255,0.85)", borderRadius: "14px 14px 0 0", boxShadow: "0 -2px 12px rgba(0,0,0,0.1)", padding: "8px 14px 14px" }}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(255,255,255,0.55)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderRadius: "14px 14px 0 0", boxShadow: "0 -2px 12px rgba(0,0,0,0.08)", padding: "8px 14px 14px" }}
           onClick={e => e.stopPropagation()}>
           <div style={{ width: 30, height: 3, borderRadius: 2, background: "#D1D5DB", margin: "0 auto 8px" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
