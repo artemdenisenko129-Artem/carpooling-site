@@ -192,8 +192,10 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               >→</button>
             </div>
             {isSearchActive && (
-              <button type="button" onClick={handleReset} className="text-xs text-[#9CA3AF] underline mb-1.5 block">
-                Скинути пошук
+              <button type="button" onClick={handleReset}
+                className="flex items-center gap-1.5 text-xs font-semibold mb-1.5 px-3 py-1.5 rounded-lg border transition-all"
+                style={{ color: "#E53935", borderColor: "#FECACA", background: "#FEF2F2" }}>
+                ✕ Скинути пошук
               </button>
             )}
           </form>

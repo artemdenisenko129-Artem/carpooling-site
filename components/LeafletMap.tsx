@@ -39,10 +39,21 @@ function tearHtml(color: string, label: string) {
 
 function makeIcon(L: any, role: "driver"|"passenger", isEnd: boolean, active: boolean) {
   const label = role === "driver" ? "В" : "П"
-  const color = active ? (role === "driver" ? DRIVER_COLOR : PASSENGER_COLOR) : INACTIVE_COLOR
-  if (isEnd) return L.divIcon({ className: "", html: tearHtml(color, label), iconSize: [20, 26], iconAnchor: [10, 26] })
-  const html = role === "driver" ? squareHtml(color, label) : circleHtml(color, label)
-  return L.divIcon({ className: "", html, iconSize: [20, 20], iconAnchor: [10, 10] })
+  // Кінцева точка (куди): великий яскравий маркер кольору ролі
+  // Початкова і проміжні: маленький сірий
+  if (isEnd) {
+    const color = active ? (role === "driver" ? DRIVER_COLOR : PASSENGER_COLOR) : INACTIVE_COLOR
+    const size = active ? 28 : 22
+    const html = `<div style="width:${size}px;height:${size+6}px;position:relative">` +
+      `<div style="position:absolute;top:0;left:${(size-size*0.85)/2}px;width:${size*0.85}px;height:${size*0.85}px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>` +
+      `<div style="position:absolute;top:1px;left:0;width:${size}px;height:${size*0.85}px;display:flex;align-items:center;justify-content:center;font-size:${active?11:9}px;font-weight:700;color:white;font-family:sans-serif">${label}</div>` +
+      `</div>`
+    return L.divIcon({ className: "", html, iconSize: [size, size+6], iconAnchor: [size/2, size+6] })
+  }
+  // Початкова/проміжна — маленька сіра крапка
+  const dotSize = 10
+  const html = `<div style="width:${dotSize}px;height:${dotSize}px;background:#B4B2A9;border-radius:50%;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div>`
+  return L.divIcon({ className: "", html, iconSize: [dotSize, dotSize], iconAnchor: [dotSize/2, dotSize/2] })
 }
 
 export default function LeafletMap({ announcements }: Props) {
