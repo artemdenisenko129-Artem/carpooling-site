@@ -31,35 +31,7 @@ type ScopeFilter = "all" | "suburban" | "intercity"
 type TripTypeFilter = "all" | "regular" | "once"
 type View = "list" | "map"
 
-interface Announcement {
-  _id: string
-  telegramUsername: string
-  role: "driver" | "passenger"
-  from: string
-  to: string
-  aiText: string
-  channelMessageId?: number
-  channelUsername?: string
-  createdAt: string
-  isRoundTrip?: boolean
-  fromLat?: number
-  fromLng?: number
-  toLat?: number
-  toLng?: number
-  waypoints?: { name: string; lat: number; lng: number }[]
-  tripType?: "once" | "regular"
-  departureDate?: string
-  schedule?: string[]
-  departureTime?: string
-  phone?: string
-  community?: string
-  seats?: number
-  authorName?: string
-  returnTime?: string
-  returnDate?: string
-  _matchedAsReturn?: boolean
-  tripScope?: "suburban" | "intercity"
-}
+import type { Announcement } from "../types/announcement"
 
 interface Props {
   announcements: Announcement[]

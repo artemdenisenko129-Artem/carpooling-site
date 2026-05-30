@@ -1,20 +1,8 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
+import type { Announcement } from "../types/announcement"
 
 declare const window: Window & { L: any }
-
-interface Waypoint { name: string; lat: number; lng: number }
-
-interface Announcement {
-  _id: string; role: "driver" | "passenger"
-  from: string; to: string; aiText: string
-  telegramUsername?: string; authorName?: string
-  fromLat?: number; fromLng?: number; toLat?: number; toLng?: number
-  isRoundTrip?: boolean; returnTime?: string; departureTime?: string
-  waypoints?: Waypoint[]; seats?: number
-  schedule?: string[]; departureDate?: string; tripType?: string
-  community?: string
-}
 
 interface Props {
   announcements: Announcement[]

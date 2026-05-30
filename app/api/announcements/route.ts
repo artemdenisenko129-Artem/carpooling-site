@@ -119,7 +119,29 @@ export async function POST(request: Request) {
     const client = await clientPromise
     const db = client.db("carpooling")
 
+    // Антиспам: перевірка ліміту і rate limit
     const session = await getSession()
+    if (session?.id) {
+      // Ліміт: не більше 5 активних оголошень
+      const activeCount = await db.collection("announcements").countDocuments({
+        authorId: session.id,
+        isActive: true,
+      })
+      if (activeCount >= 5) {
+        return NextResponse.json({ error: "Ліміт: не більше 5 активних оголошень. Деактивуйте старі в кабінеті." }, { status: 429 })
+      }
+
+      // Rate limit: не частіше 1 оголошення на 10 хвилин
+      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+      const recentCount = await db.collection("announcements").countDocuments({
+        authorId: session.id,
+        createdAt: { $gte: tenMinutesAgo },
+      })
+      if (recentCount >= 1) {
+        return NextResponse.json({ error: "Зачекайте 10 хвилин перед наступним оголошенням." }, { status: 429 })
+      }
+    }
+
     const authorName = session?.name || null
     const authorId = session?.id || null
 

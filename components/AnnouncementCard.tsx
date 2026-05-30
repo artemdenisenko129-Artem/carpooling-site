@@ -1,33 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-
-interface Announcement {
-  _id: string
-  telegramUsername: string
-  role: "driver" | "passenger"
-  from: string
-  to: string
-  aiText: string
-  channelMessageId?: number
-  channelUsername?: string
-  createdAt: string
-  isRoundTrip?: boolean
-  tripType?: "once" | "regular"
-  departureDate?: string
-  schedule?: string[]
-  departureTime?: string
-  phone?: string
-  community?: string
-  seats?: number
-  authorName?: string
-  authorId?: string
-  returnTime?: string
-  returnDate?: string
-  _matchedAsReturn?: boolean
-  tripScope?: "suburban" | "intercity"
-  waypoints?: { name: string; lat?: number; lng?: number }[]
-}
+import type { Announcement } from "../types/announcement"
 
 interface Props {
   announcement: Announcement
