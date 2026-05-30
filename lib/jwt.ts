@@ -5,6 +5,7 @@ const SECRET = process.env.AUTH_SECRET ?? "dev-secret-please-change"
 export interface JWTPayload {
   id: string
   name: string
+  email?: string | null
   telegramUsername: string | null
   image: string | null
   exp: number

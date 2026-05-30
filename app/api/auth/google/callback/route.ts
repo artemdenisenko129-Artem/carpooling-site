@@ -45,6 +45,7 @@ export async function GET(request: Request) {
     const token = signToken({
       id:              "google_" + googleUser.sub,
       name:            googleUser.name || googleUser.email || "Користувач",
+      email:           googleUser.email || null,
       telegramUsername: null,
       image:           googleUser.picture || null,
       exp:             Date.now() + 30 * 24 * 60 * 60 * 1000,
