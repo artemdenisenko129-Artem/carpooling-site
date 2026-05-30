@@ -15,7 +15,7 @@ export interface Announcement {
   authorId?: string
   channelMessageId?: number
   channelUsername?: string
-  createdAt: string
+  createdAt?: string
   isActive?: boolean
   isRoundTrip?: boolean
   fromLat?: number
