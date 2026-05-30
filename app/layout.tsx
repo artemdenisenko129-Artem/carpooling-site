@@ -26,12 +26,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="preconnect" href="https://tile.openstreetmap.org" />
         <link rel="preconnect" href="https://a.tile.openstreetmap.org" />
         <link rel="dns-prefetch" href="https://api.telegram.org" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
       </head>
       <body className="min-h-full">
         {children}
         <ConsentModal />
-        <Script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" strategy="beforeInteractive" />
-        <Script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" strategy="beforeInteractive" />
+        <Script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" strategy="afterInteractive" />
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
             <Script
