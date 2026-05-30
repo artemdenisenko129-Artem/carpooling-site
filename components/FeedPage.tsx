@@ -27,7 +27,7 @@ function LogoSVG() {
 
 type RoleFilter = "all" | "driver" | "passenger"
 type ScopeFilter = "all" | "suburban" | "intercity"
-type TripTypeFilter = "all" | "regular"
+type TripTypeFilter = "all" | "regular" | "once"
 type View = "list" | "map"
 
 interface Announcement {
@@ -102,6 +102,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
     if (scopeFilter === "suburban"  && a.tripScope === "intercity") return false
     if (scopeFilter === "intercity" && a.tripScope !== "intercity") return false
     if (tripTypeFilter === "regular" && a.tripType !== "regular") return false
+    if (tripTypeFilter === "once" && a.tripType !== "once") return false
     return true
   })
 
@@ -149,55 +150,53 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </header>
 
         {/* Пошук */}
-        <div className="border-b border-[#E5E7EB] px-4 pt-3 pb-0">
+        <div className="border-b border-[#E5E7EB] px-4 pt-2 pb-0">
           <form onSubmit={handleSearch}>
-            <div
-              className="flex items-stretch rounded-xl border transition-colors mb-3"
-              style={{ background: "#F3F4F6", borderColor: isPending ? "#5B8FD9" : "#E5E7EB" }}
-            >
-              <div className="flex flex-col items-center justify-center gap-1 px-3 py-3 shrink-0">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#5B8FD9" }} />
-                <div className="w-px h-4 bg-[#D1D5DB]" />
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#E53935" }} />
-              </div>
-              <div className="flex-1 flex flex-col divide-y divide-[#E5E7EB]">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex-1 flex items-center gap-1.5 rounded-lg border bg-[#F9FAFB] px-2 py-1.5"
+                style={{ borderColor: "#E5E7EB" }}>
+                <span className="text-[#9CA3AF] text-sm shrink-0">🔍</span>
                 <PlaceAutocomplete
                   value={fromVal}
                   onChange={(v) => setFromVal(v)}
-                  placeholder="Звідки..."
+                  placeholder="Населений пункт"
                   dotColor="blue"
-                  inputClassName="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
+                  inputClassName="bg-transparent text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
                 />
+                {fromVal && <button type="button" onClick={() => setFromVal("")} className="text-[#9CA3AF] text-xs shrink-0">✕</button>}
+              </div>
+              <div className="flex-1 flex items-center gap-1.5 rounded-lg border bg-[#F9FAFB] px-2 py-1.5"
+                style={{ borderColor: "#E5E7EB" }}>
+                <span className="text-[#9CA3AF] text-sm shrink-0">🔍</span>
                 <PlaceAutocomplete
                   value={toVal}
                   onChange={(v) => setToVal(v)}
-                  placeholder="Куди..."
+                  placeholder="Населений пункт"
                   dotColor="red"
-                  inputClassName="bg-transparent px-1 py-2.5 text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
+                  inputClassName="bg-transparent text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
                 />
+                {toVal && <button type="button" onClick={() => setToVal("")} className="text-[#9CA3AF] text-xs shrink-0">✕</button>}
               </div>
               <button
                 type="submit"
-                className="px-4 text-lg font-bold text-white shrink-0 transition-colors rounded-r-xl"
-                style={{ background: "#5B8FD9" }}
+                className="shrink-0 px-3 py-1.5 rounded-lg text-sm font-bold text-white transition-colors"
+                style={{ background: isPending ? "#93B8E8" : "#5B8FD9" }}
                 aria-label="Знайти"
-              >
-                &rarr;
-              </button>
+              >→</button>
             </div>
             {isSearchActive && (
-              <button type="button" onClick={handleReset} className="text-xs text-[#9CA3AF] underline mb-2 block">
+              <button type="button" onClick={handleReset} className="text-xs text-[#9CA3AF] underline mb-1.5 block">
                 Скинути пошук
               </button>
             )}
           </form>
 
-          <div className="flex gap-2 pb-3 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+          <div className="flex gap-2 pb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
             {(["all", "driver", "passenger"] as RoleFilter[]).map((r) => (
               <button
                 key={r}
                 onClick={() => setRoleFilter(r)}
-                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                className="shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all"
                 style={roleFilter === r
                   ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
                   : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
@@ -210,24 +209,27 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               <button
                 key={s}
                 onClick={() => setScopeFilter(scopeFilter === s ? "all" : s)}
-                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                className="shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all"
                 style={scopeFilter === s
                   ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
                   : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
               >
-                {s === "suburban" ? "🏘 Приміська/Міська" : "🛣 Міжміська"}
+                {s === "suburban" ? "🏘 Приміська" : "🛣 Міжміська"}
               </button>
             ))}
 
-            <button
-              onClick={() => setTripTypeFilter(tripTypeFilter === "regular" ? "all" : "regular")}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-              style={tripTypeFilter === "regular"
-                ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-            >
-              🔄 Регулярно
-            </button>
+            {(["regular", "once"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTripTypeFilter(tripTypeFilter === t ? "all" : t)}
+                className="shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all"
+                style={tripTypeFilter === t
+                  ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
+                  : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
+              >
+                {t === "regular" ? "🔄 Регулярно" : "📅 Одного разу"}
+              </button>
+            ))}
 
             {isLoggedIn ? (
               <button

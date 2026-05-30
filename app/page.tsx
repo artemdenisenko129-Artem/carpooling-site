@@ -40,24 +40,28 @@ async function getAnnouncements(from?: string, to?: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let items: any[]
 
-  if (from?.trim() && to?.trim()) {
-    const f = from.toLowerCase().trim()
-    const t = to.toLowerCase().trim()
-    const directQuery = { ...activeFilter, searchFrom: { $regex: f, $options: "i" }, searchTo: { $regex: t, $options: "i" } }
-    const reverseQuery = { ...activeFilter, isRoundTrip: true, searchFrom: { $regex: t, $options: "i" }, searchTo: { $regex: f, $options: "i" } }
-    const [direct, reverse] = await Promise.all([
-      db.collection("announcements").find(directQuery).sort({ createdAt: -1 }).limit(30).toArray(),
-      db.collection("announcements").find(reverseQuery).sort({ createdAt: -1 }).limit(20).toArray(),
-    ])
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const reversedTagged = reverse.map((r: any) => ({ ...r, _matchedAsReturn: true }))
-    items = [...direct, ...reversedTagged]
-  } else {
-    const query: Record<string, unknown> = { ...activeFilter }
-    if (from?.trim()) query.searchFrom = { $regex: from.toLowerCase().trim(), $options: "i" }
-    if (to?.trim())   query.searchTo   = { $regex: to.toLowerCase().trim(),   $options: "i" }
-    items = await db.collection("announcements").find(query).sort({ createdAt: -1 }).limit(50).toArray()
+  // Функція: НП зустрічається у from, to або waypoints
+  function npMatch(np: string) {
+    const r = { $regex: np, $options: "i" }
+    return {
+      $or: [
+        { searchFrom: r },
+        { searchTo: r },
+        { waypoints: { $elemMatch: { name: r } } },
+      ]
+    }
   }
+
+  const query: Record<string, unknown> = { ...activeFilter }
+  if (from?.trim() && to?.trim()) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (query as any).$and = [npMatch(from.trim()), npMatch(to.trim())]
+  } else if (from?.trim()) {
+    Object.assign(query, npMatch(from.trim()))
+  } else if (to?.trim()) {
+    Object.assign(query, npMatch(to.trim()))
+  }
+  items = await db.collection("announcements").find(query).sort({ createdAt: -1 }).limit(50).toArray()
 
   const seen = new Set<string>()
   const unique: typeof items = []
