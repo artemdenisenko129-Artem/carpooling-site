@@ -83,9 +83,12 @@ export default function NewAnnouncement() {
     fetch("/api/profile")
       .then(r => r.json())
       .then(d => {
+        const tgFromProfile = d.telegramHandle
+          ? (d.telegramHandle.startsWith("@") ? d.telegramHandle : "@" + d.telegramHandle)
+          : ""
         setForm(f => ({
           ...f,
-          telegramUsername: tg || f.telegramUsername,
+          telegramUsername: tg || tgFromProfile || f.telegramUsername,
           phone: d.phone || f.phone,
           community: d.community || f.community,
         }))

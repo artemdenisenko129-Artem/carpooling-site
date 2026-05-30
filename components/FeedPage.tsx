@@ -43,6 +43,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [view, setView] = useState<View>("list")
+  const [mapEverOpened, setMapEverOpened] = useState(false)
 
   const [fromVal, setFromVal] = useState(initialFrom)
   const [toVal, setToVal]   = useState(initialTo)
@@ -243,7 +244,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             ☰ Список
           </button>
           <button
-            onClick={() => { setView("map"); setTimeout(() => { (window as any)._leafletMap?.invalidateSize() }, 50) }}
+            onClick={() => { setView("map"); setMapEverOpened(true); setTimeout(() => { (window as any)._leafletMap?.invalidateSize() }, 100) }}
             className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
             style={view === "map"
               ? { color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }
@@ -277,18 +278,20 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </div>
       )}
 
-      {/* Карта — завжди в DOM, тільки ховаємо */}
-      <div style={{ display: view === "map" ? "block" : "none" }} className="pb-24">
-        <MapErrorBoundary>
-          <Suspense fallback={
-            <div className="flex items-center justify-center" style={{ height: 440 }}>
-              <div className="w-8 h-8 rounded-full border-2 border-[#5B8FD9] border-t-transparent animate-spin" />
-            </div>
-          }>
-            <LeafletMap announcements={filtered} />
-          </Suspense>
-        </MapErrorBoundary>
-      </div>
+      {/* Карта — монтується тільки після першого відкриття, потім залишається */}
+      {mapEverOpened && (
+        <div style={{ display: view === "map" ? "block" : "none" }} className="pb-24">
+          <MapErrorBoundary>
+            <Suspense fallback={
+              <div className="flex items-center justify-center" style={{ height: 440 }}>
+                <div className="w-8 h-8 rounded-full border-2 border-[#5B8FD9] border-t-transparent animate-spin" />
+              </div>
+            }>
+              <LeafletMap announcements={filtered} />
+            </Suspense>
+          </MapErrorBoundary>
+        </div>
+      )}
 
       {/* Футер — тільки в режимі списку */}
       {view === "list" && (
