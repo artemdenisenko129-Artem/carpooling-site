@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { getSession } from "../../../../lib/session"
-import clientPromise from "../../../../lib/db"
+import { getSession } from "../../../lib/session"
+import clientPromise from "../../../lib/db"
 
 export async function POST(request: Request) {
   const session = await getSession()
