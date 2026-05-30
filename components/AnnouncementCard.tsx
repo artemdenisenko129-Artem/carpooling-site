@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import type { Announcement } from "../types/announcement"
 
 interface Props {
@@ -230,9 +231,19 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
         </p>
 
         {!expanded && (
-          <p className="text-xs mt-1" style={{ color: "#5B8FD9" }}>
-            Натисніть щоб побачити контакт →
-          </p>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xs" style={{ color: "#5B8FD9" }}>
+              Натисніть щоб побачити контакт →
+            </p>
+            <Link
+              href={`/announcement/${a._id}`}
+              onClick={e => e.stopPropagation()}
+              className="text-xs no-underline"
+              style={{ color: "#9CA3AF" }}
+            >
+              Детальніше ↗
+            </Link>
+          </div>
         )}
       </div>
 

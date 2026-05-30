@@ -21,6 +21,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="uk" className={inter.variable}>
+      <head>
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        <link rel="preconnect" href="https://tile.openstreetmap.org" />
+        <link rel="preconnect" href="https://a.tile.openstreetmap.org" />
+        <link rel="dns-prefetch" href="https://api.telegram.org" />
+      </head>
       <body className="min-h-full">
         {children}
         <ConsentModal />
