@@ -36,4 +36,5 @@ export interface Announcement {
   _matchedAsReturn?: boolean
   archivedAt?: string
   archiveReason?: string
+  views?: number
 }

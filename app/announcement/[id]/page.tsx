@@ -77,11 +77,11 @@ export default async function AnnouncementPage({ params }: Props) {
     <div className="min-h-screen bg-[#F3F4F6]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <BackButton />
       <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <Link href="/" className="text-base font-extrabold text-[#111827] no-underline">
           Попутки<span style={{ color: "#5B8FD9" }}>UA</span>
         </Link>
+        <BackButton />
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-6 pb-16">

@@ -13,21 +13,6 @@ const DRIVER_COLOR   = "#E24B4A"
 const PASSENGER_COLOR = "#378ADD"
 const INACTIVE_COLOR  = "#B4B2A9"
 
-function squareHtml(color: string, label: string) {
-  return `<div style="width:20px;height:20px;background:${color};border-radius:4px;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${label}</div>`
-}
-
-function circleHtml(color: string, label: string) {
-  return `<div style="width:20px;height:20px;background:${color};border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2)">${label}</div>`
-}
-
-function tearHtml(color: string, label: string) {
-  return `<div style="position:relative;width:20px;height:26px">` +
-    `<div style="position:absolute;top:0;left:2px;width:16px;height:16px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2)"></div>` +
-    `<div style="position:absolute;top:1px;left:2px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white;font-family:sans-serif">${label}</div>` +
-    `</div>`
-}
-
 const INACTIVE_RING = "#FFE500"
 
 function makeIcon(L: any, role: "driver"|"passenger", isEnd: boolean, active: boolean) {
@@ -169,8 +154,7 @@ export default function LeafletMap({ announcements, highlightId }: Props) {
       }
     })
 
-    if (!highlightId && allPoints.length) map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 11 })
-    if (highlightId && allPoints.length) map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 11 })
+    if (allPoints.length) map.fitBounds(allPoints, { padding: [40, 40], maxZoom: 11 })
   }
 
   function handleLocate() {
@@ -265,3 +249,4 @@ export default function LeafletMap({ announcements, highlightId }: Props) {
     </div>
   )
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
