@@ -77,6 +77,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
+  const [communityFilter, setCommunityFilter] = useState("")
 
   const { user, isLoggedIn } = useSession()
 
@@ -103,6 +104,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
     if (scopeFilter === "intercity" && a.tripScope !== "intercity") return false
     if (tripTypeFilter === "regular" && a.tripType !== "regular") return false
     if (tripTypeFilter === "once" && a.tripType !== "once") return false
+    if (communityFilter && !a.community?.toLowerCase().includes(communityFilter.toLowerCase())) return false
     return true
   })
 
@@ -128,9 +130,9 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
           {isLoggedIn ? (
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-sm font-medium text-[#374151]">
+              <Link href="/profile" className="text-sm font-medium text-[#374151] no-underline hover:text-[#5B8FD9] transition-colors">
                 👤 {user?.name?.split(" ")[0] || "Профіль"}
-              </span>
+              </Link>
               <button
                 className="border border-[#E5E7EB] rounded-full px-3 py-1.5 text-xs font-medium text-[#6B7280] bg-[#F9FAFB] transition-colors hover:border-[#E53935] hover:text-[#E53935]"
                 onClick={logout}
@@ -231,23 +233,22 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
               </button>
             ))}
 
-            {isLoggedIn ? (
-              <button
-                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-                style={{ background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-                onClick={() => alert("Фільтр за вашою спільнотою (ЖК, район)")}
-              >
-                🏘 Спільнота
-              </button>
-            ) : (
-              <button
-                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border"
-                style={{ background: "white", borderColor: "#E5E7EB", color: "#9CA3AF" }}
-                onClick={() => router.push("/login")}
-              >
-                🏘 Спільнота 🔒
-              </button>
-            )}
+            <div className="shrink-0 flex items-center gap-1 rounded-full border px-2 py-1 transition-all"
+              style={communityFilter
+                ? { background: "#EBF2FC", borderColor: "#5B8FD9" }
+                : { background: "white", borderColor: "#D1D5DB" }}>
+              <span className="text-xs">🏘</span>
+              <input
+                value={communityFilter}
+                onChange={e => setCommunityFilter(e.target.value)}
+                placeholder="Спільнота"
+                className="text-xs outline-none bg-transparent w-20"
+                style={{ color: communityFilter ? "#3A6BBF" : "#374151" }}
+              />
+              {communityFilter && (
+                <button onClick={() => setCommunityFilter("")} className="text-[#9CA3AF] text-xs ml-0.5">✕</button>
+              )}
+            </div>
           </div>
         </div>
 

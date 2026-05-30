@@ -67,7 +67,7 @@ export default function NewAnnouncement() {
     departureTime: "",
     returnTime: "",
     returnDate: "",
-    seats: 1,
+    seats: 0,
     telegramUsername: "",
     phone: "",
     community: "",
@@ -76,11 +76,23 @@ export default function NewAnnouncement() {
   const [waypointTriggerIdx, setWaypointTriggerIdx] = useState<number | null>(null)
 
   useEffect(() => {
-    if (user?.telegramUsername && !form.telegramUsername) {
-      const tg = user.telegramUsername.startsWith("@")
-        ? user.telegramUsername : "@" + user.telegramUsername
-      setForm(f => ({ ...f, telegramUsername: tg }))
-    }
+    if (!user) return
+    const tg = user.telegramUsername
+      ? (user.telegramUsername.startsWith("@") ? user.telegramUsername : "@" + user.telegramUsername)
+      : ""
+    fetch("/api/profile")
+      .then(r => r.json())
+      .then(d => {
+        setForm(f => ({
+          ...f,
+          telegramUsername: tg || f.telegramUsername,
+          phone: d.phone || f.phone,
+          community: d.community || f.community,
+        }))
+      })
+      .catch(() => {
+        if (tg) setForm(f => ({ ...f, telegramUsername: tg }))
+      })
   }, [user])
 
   function activateMap(mode: "from" | "to") {
@@ -96,6 +108,7 @@ export default function NewAnnouncement() {
     if (!form.role) newErrors.role = "Оберіть хто ви — водій чи пасажир"
     if (!form.tripScope) newErrors.tripScope = "Оберіть тип маршруту"
     if (!form.tripType) newErrors.tripType = "Оберіть як часто їдете"
+    if (form.role === "driver" && !form.seats) newErrors.seats = "Вкажіть кількість вільних місць"
     if (!form.telegramUsername.trim() && !form.phone.trim()) newErrors.contact = "Вкажіть хоча б один спосіб зв'язку"
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -452,10 +465,11 @@ export default function NewAnnouncement() {
             {form.role === "driver" && (
               <div>
                 <label className="block text-xs text-[#6B7280] mb-2">Вільних місць</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap"
+                  style={errors.seats ? { outline: "2px solid #E53935", borderRadius: 10, outlineOffset: 2 } : {}}>
                   {[1,2,3,4,5,6,7,8].map(n => (
                     <button key={n} type="button"
-                      onClick={() => setForm(f => ({ ...f, seats: n }))}
+                      onClick={() => { setForm(f => ({ ...f, seats: n })); setErrors(e => ({ ...e, seats: "" })) }}
                       className="w-9 h-9 rounded-xl text-sm font-semibold border-2 transition-all"
                       style={form.seats === n
                         ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }
@@ -463,6 +477,7 @@ export default function NewAnnouncement() {
                     >{n}</button>
                   ))}
                 </div>
+                {errBox("seats")}
               </div>
             )}
 
