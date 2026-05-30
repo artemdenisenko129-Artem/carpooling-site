@@ -269,7 +269,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
             ☰ Список
           </button>
           <button
-            onClick={() => setView("map")}
+            onClick={() => { setView("map"); setTimeout(() => { (window as any)._leafletMap?.invalidateSize() }, 50) }}
             className="flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 border-b-2 transition-all"
             style={view === "map"
               ? { color: "#5B8FD9", borderColor: "#5B8FD9", fontWeight: 700 }

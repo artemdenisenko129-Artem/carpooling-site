@@ -90,6 +90,7 @@ export default function LeafletMap({ announcements }: Props) {
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap contributors", maxZoom: 18 }).addTo(map)
     map.on("click", () => { deactivate(); setSheet(null) })
     mapRef.current = map
+    ;(window as any)._leafletMap = map
     setTimeout(() => map.invalidateSize(), 0)
     renderMarkers(L, map)
   }
