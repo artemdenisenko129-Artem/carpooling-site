@@ -43,9 +43,10 @@ async function postToChannel(doc: any): Promise<number | null> {
   }
 
   // Контакт
-  const contact = doc.telegramUsername
-    ? "📩 @" + doc.telegramUsername
-    : (doc.phone ? "📞 " + doc.phone : "")
+  const contactLines: string[] = []
+  if (doc.telegramUsername) contactLines.push("📩 @" + doc.telegramUsername)
+  if (doc.phone) contactLines.push("📞 " + doc.phone)
+  const contact = contactLines.join("  ·  ")
 
   // Опис
   const description = doc.aiText ? "\n\n" + doc.aiText : ""
