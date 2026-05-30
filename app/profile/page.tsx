@@ -85,9 +85,14 @@ export default function ProfilePage() {
         <Link href="/" className="text-base font-extrabold text-[#111827] no-underline">
           Попутки<span style={{ color: "#5B8FD9" }}>UA</span>
         </Link>
-        <button onClick={logout} className="text-sm text-[#6B7280] hover:text-[#E53935] transition-colors">
-          Вийти
-        </button>
+        <div className="flex items-center gap-3">
+          <Link href="/" className="text-sm font-medium text-[#5B8FD9] no-underline hover:opacity-80 transition-opacity">
+            ← На головну
+          </Link>
+          <button onClick={logout} className="text-xs text-[#9CA3AF] hover:text-[#E53935] transition-colors">
+            Вийти
+          </button>
+        </div>
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-6 pb-16">

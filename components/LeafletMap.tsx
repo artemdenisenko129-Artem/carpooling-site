@@ -205,8 +205,16 @@ export default function LeafletMap({ announcements }: Props) {
     }, () => setLocating(false), { timeout: 8000 })
   }
 
+  const withCoords = announcements.filter(a => a.fromLat != null && a.toLat != null)
+  const withoutCoords = announcements.length - withCoords.length
+
   return (
     <div style={{ position: "relative" }}>
+      {withoutCoords > 0 && (
+        <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1000, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#6B7280", pointerEvents: "none" }}>
+          {withCoords.length} з {announcements.length} на карті
+        </div>
+      )}
       <button onClick={handleLocate} disabled={locating} title="Моє місцезнаходження"
         style={{ position: "absolute", top: 10, right: 10, zIndex: 1000, width: 38, height: 38, borderRadius: "50%", background: "white", border: "2px solid #E5E7EB", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 17 }}>
         {locating ? "⏳" : "🎯"}
