@@ -7,7 +7,7 @@
 
 export const SITE = {
   name: "Попутки UA",
-  domain: "https://poputtky.ua",
+  domain: process.env.NEXT_PUBLIC_BASE_URL || "https://carpooling-site.vercel.app",
   tagline: "приміські щоденні поїздки",
   description:
     "Безкоштовний сервіс пошуку попутників для щоденних приміських поїздок в Україні. " +

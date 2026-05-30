@@ -4,21 +4,18 @@ import Link from "next/link"
 import clientPromise from "../../../lib/db"
 import { ObjectId } from "mongodb"
 import BackButton from "../../../components/BackButton"
+import { SITE } from "../../../lib/seo-config"
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
-async function getAnnouncement(id: string) {
+async function getAnnouncementData(id: string) {
   try {
     if (!ObjectId.isValid(id)) return null
     const client = await clientPromise
     const db = client.db("carpooling")
-    const item = await db.collection("announcements").findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { $inc: { views: 1 } },
-      { returnDocument: "after" }
-    )
+    const item = await db.collection("announcements").findOne({ _id: new ObjectId(id) })
     if (!item) return null
     return JSON.parse(JSON.stringify(item))
   } catch {
@@ -26,9 +23,20 @@ async function getAnnouncement(id: string) {
   }
 }
 
+async function incrementViews(id: string) {
+  try {
+    const client = await clientPromise
+    const db = client.db("carpooling")
+    await db.collection("announcements").updateOne(
+      { _id: new ObjectId(id) },
+      { $inc: { views: 1 } }
+    )
+  } catch {}
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const a = await getAnnouncement(id)
+  const a = await getAnnouncementData(id)
   if (!a) return { title: "Оголошення не знайдено" }
   const role = a.role === "driver" ? "Водій" : "Пасажир"
   const title = `${role}: ${a.from} → ${a.to} — ПопуткиUA`
@@ -37,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description: desc,
     openGraph: { title, description: desc, locale: "uk_UA", type: "article" },
-    alternates: { canonical: `https://carpooling-site.vercel.app/announcement/${id}` },
+    alternates: { canonical: `${SITE.domain}/announcement/${id}` },
   }
 }
 
@@ -46,8 +54,9 @@ const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"]
 
 export default async function AnnouncementPage({ params }: Props) {
   const { id } = await params
-  const a = await getAnnouncement(id)
+  const a = await getAnnouncementData(id)
   if (!a) notFound()
+  await incrementViews(id)
 
   const role = a.role === "driver" ? "🚗 Водій" : "💺 Пасажир"
   const isDriver = a.role === "driver"
@@ -70,7 +79,7 @@ export default async function AnnouncementPage({ params }: Props) {
       "@type": "Person",
       "name": a.authorName || a.telegramUsername || "Анонімно",
     },
-    "url": `https://carpooling-site.vercel.app/announcement/${id}`,
+    "url": `${SITE.domain}/announcement/${id}`,
   }
 
   return (
@@ -162,8 +171,4 @@ export default async function AnnouncementPage({ params }: Props) {
           className="block text-center py-3 rounded-xl text-sm font-semibold no-underline border-2 transition-all"
           style={{ borderColor: "#5B8FD9", color: "#5B8FD9" }}>
           ← Переглянути всі оголошення
-        </Link>
-      </div>
-    </div>
-  )
-}
+   

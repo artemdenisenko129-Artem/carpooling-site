@@ -4,13 +4,10 @@ import { CITIES, SITE } from "../lib/seo-config"
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
 
-  const home: MetadataRoute.Sitemap = [
-    {
-      url: SITE.domain,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 1,
-    },
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: SITE.domain, lastModified: now, changeFrequency: "hourly", priority: 1 },
+    { url: `${SITE.domain}/map`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
+    { url: `${SITE.domain}/rules`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
   ]
 
   const cityPages: MetadataRoute.Sitemap = CITIES.map((city) => ({
@@ -20,5 +17,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }))
 
-  return [...home, ...cityPages]
+  return [...staticPages, ...cityPages]
 }

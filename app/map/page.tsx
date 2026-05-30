@@ -1,8 +1,20 @@
 import { Suspense } from "react"
+import type { Metadata } from "next"
 import clientPromise from "../../lib/db"
 import MapPageClient from "../../components/MapPageClient"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Карта попутників — ПопуткиUA",
+  description: "Переглядай маршрути водіїв і пасажирів на карті. Знайди попутника поруч із собою.",
+  openGraph: {
+    title: "Карта попутників — ПопуткиUA",
+    description: "Маршрути водіїв і пасажирів на інтерактивній карті України.",
+    locale: "uk_UA",
+    type: "website",
+  },
+}
 
 async function getMapAnnouncements() {
   const client = await clientPromise
