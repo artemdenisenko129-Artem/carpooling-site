@@ -272,7 +272,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                   announcements.map(a => a.community).filter((c): c is string => !!c && c.toLowerCase().includes(term) && c.toLowerCase() !== term)
                 )).slice(0, 6)
                 return options.length > 0 ? (
-                  <div style={{ position: "absolute", top: "110%", left: 0, zIndex: 200, background: "white", border: "1px solid #E5E7EB", borderRadius: 10, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 140, overflow: "hidden" }}>
+                  <div style={{ position: "absolute", top: "110%", left: 0, zIndex: 9999, background: "white", border: "1px solid #E5E7EB", borderRadius: 10, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 140, overflow: "hidden" }}>
                     {options.map(c => (
                       <button key={c} onMouseDown={() => setCommunityFilter(c)}
                         className="block w-full text-left px-3 py-1.5 text-xs hover:bg-[#EBF2FC] transition-colors"
@@ -333,7 +333,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
       {/* Карта — монтується тільки після першого відкриття, потім залишається */}
       {mapEverOpened && (
-        <div style={{ display: view === "map" ? "block" : "none" }} className="pb-24">
+        <div style={{ display: view === "map" ? "block" : "none", position: "relative", zIndex: 1 }} className="pb-24">
           <MapErrorBoundary>
             <Suspense fallback={
               <div className="flex items-center justify-center" style={{ height: 440 }}>
