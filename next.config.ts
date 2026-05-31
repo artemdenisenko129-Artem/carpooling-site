@@ -3,6 +3,15 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: "/map",
+        destination: "/?view=map",
+        permanent: true, // 301 — Google перейде на нову URL і оновить індекс
+      },
+    ]
+  },
   async headers() {
     return [
       {
