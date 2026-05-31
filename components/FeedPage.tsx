@@ -149,8 +149,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 />
                 {fromVal && (
                   <button type="button" onClick={() => { setFromVal(""); doSearch("", toVal) }}
-                    className="shrink-0 text-[#C0C4CC] hover:text-[#9CA3AF] transition-colors"
-                    style={{ fontSize: 16, lineHeight: 1, background: "none", border: "none", padding: "0 2px", cursor: "pointer" }}>×</button>
+                    className="shrink-0 flex items-center justify-center rounded-full font-semibold transition-all"
+                    style={{ fontSize: 12, width: 20, height: 20, background: "white", border: "2px solid #F59E0B", color: "#92400E", cursor: "pointer", lineHeight: 1 }}>×</button>
                 )}
               </div>
               <button
@@ -181,8 +181,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 />
                 {toVal && (
                   <button type="button" onClick={() => { setToVal(""); doSearch(fromVal, "") }}
-                    className="shrink-0 text-[#C0C4CC] hover:text-[#9CA3AF] transition-colors"
-                    style={{ fontSize: 16, lineHeight: 1, background: "none", border: "none", padding: "0 2px", cursor: "pointer" }}>×</button>
+                    className="shrink-0 flex items-center justify-center rounded-full font-semibold transition-all"
+                    style={{ fontSize: 12, width: 20, height: 20, background: "white", border: "2px solid #F59E0B", color: "#92400E", cursor: "pointer", lineHeight: 1 }}>×</button>
                 )}
               </div>
             )}
@@ -258,8 +258,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 />
                 {communityFilter && (
                   <button onClick={() => setCommunityFilter("")}
-                    className="shrink-0 flex items-center justify-center rounded-full transition-all"
-                    style={{ width: 18, height: 18, fontSize: 11, fontWeight: 700, lineHeight: 1, color: "rgba(255,255,255,0.9)", background: "rgba(255,255,255,0.2)" }}>×</button>
+                    className="shrink-0 flex items-center justify-center rounded-full font-semibold transition-all"
+                    style={{ width: 20, height: 20, fontSize: 12, lineHeight: 1, background: "white", border: "2px solid #F59E0B", color: "#92400E", cursor: "pointer" }}>×</button>
                 )}
               </div>
               {communityFocus && (() => {
