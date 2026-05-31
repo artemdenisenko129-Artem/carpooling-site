@@ -53,8 +53,20 @@ export default async function CityPage({ params }: Props) {
   if (!city) notFound()
   const announcements = await getCityAnnouncements(city.name)
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": `Попутники ${city.name} — ${city.hubCity}`,
+    "description": city.description,
+    "provider": { "@type": "Organization", "name": SITE.name, "url": SITE.domain },
+    "areaServed": [city.name, city.hubCity],
+    "serviceType": "Carpooling",
+    "url": `${SITE.domain}/city/${city.slug}`,
+  }
+
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <header className="bg-white border-b border-[#E5E7EB] px-4 py-3 flex items-center gap-3">
         <Link href="/" className="text-[#5B8FD9] text-sm font-medium hover:underline">
           ← Всі оголошення

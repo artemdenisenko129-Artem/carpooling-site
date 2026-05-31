@@ -8,6 +8,7 @@ import AnnouncementCard from "./AnnouncementCard"
 import PlaceAutocomplete from "./PlaceAutocomplete"
 import MapErrorBoundary from "./MapErrorBoundary"
 import LogoSVG from "./LogoSVG"
+import { CITIES, ROUTES } from "../lib/seo-config"
 
 const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
@@ -51,6 +52,7 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
   const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
   const [communityFilter, setCommunityFilter] = useState("")
   const [communityFocus, setCommunityFocus] = useState(false)
+  const [showRoutes, setShowRoutes] = useState(false)
 
   const [allAnnouncements, setAllAnnouncements] = useState<Announcement[]>(announcements)
   const [currentPage, setCurrentPage] = useState(0)
@@ -306,6 +308,34 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
               })()}
             </div>
           </div>
+        </div>
+
+
+        {/* Кнопка маршрутів */}
+        <div className="border-b border-[#E5E7EB] px-4 py-2">
+          <button
+            onClick={() => setShowRoutes(s => !s)}
+            className="flex items-center gap-1.5 text-xs font-medium text-[#6B7280] hover:text-[#5B8FD9] transition-colors"
+          >
+            <span>🗺 Популярні маршрути</span>
+            <span style={{ fontSize: 10, display: "inline-block", transform: showRoutes ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+          </button>
+          {showRoutes && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {ROUTES.filter(r => r.to === "Київ").map(r => (
+                <Link key={r.slug} href={`/route/${r.slug}`}
+                  className="px-2.5 py-1 rounded-full text-xs font-medium no-underline transition-colors"
+                  style={{ background: "#EBF2FC", color: "#3A6BBF" }}>
+                  {r.from} → Київ
+                </Link>
+              ))}
+              <Link href="/about"
+                className="px-2.5 py-1 rounded-full text-xs font-medium no-underline"
+                style={{ background: "#F3F4F6", color: "#6B7280" }}>
+                Про сервіс
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Перемикач список/карта */}
