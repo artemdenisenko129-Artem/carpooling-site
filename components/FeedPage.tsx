@@ -414,10 +414,10 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
             <div className="flex flex-wrap gap-x-3 gap-y-1">
               {[
                 { slug: "brovary", name: "Бровари" }, { slug: "irpin", name: "Ірпінь" },
-                { slug: "bucha", name: "Буча" }, { slug: "boryspil", name: "Бориспіль" },
-                { slug: "vasylkiv", name: "Васильків" }, { slug: "bila-tserkva", name: "Біла Церква" },
-                { slug: "fastiv", name: "Фастів" }, { slug: "vyshhorod", name: "Вишгород" },
-                { slug: "obukhiv", name: "Обухів" }, { slug: "pereiaslav", name: "Переяслав" },
+                { slug: "bucha", name: "Буча" }, { slug: "vyshneveye", name: "Вишневе" },
+                { slug: "boryspil", name: "Бориспіль" }, { slug: "vasylkiv", name: "Васильків" },
+                { slug: "boyarka", name: "Боярка" }, { slug: "vyshhorod", name: "Вишгород" },
+                { slug: "obukhiv", name: "Обухів" },
               ].map(c => (
                 <Link key={c.slug} href={`/city/${c.slug}`}
                   className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">
