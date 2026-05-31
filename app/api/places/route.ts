@@ -13,31 +13,39 @@ export async function GET(request: Request) {
     const client = await clientPromise
     const db = client.db("carpooling")
 
-    // Шукаємо за початком назви (prefix) або входженням
+    const qEsc = escapeRegex(q)
+    // Пошук за назвою (prefix) або aliases
+    const prefixQuery = {
+      $or: [
+        { nameLower: { $regex: "^" + qEsc, $options: "i" } },
+        { aliases: { $regex: "^" + qEsc, $options: "i" } },
+      ]
+    }
     const results = await db
       .collection("places")
-      .find({
-        nameLower: { $regex: "^" + escapeRegex(q), $options: "i" },
-      })
+      .find(prefixQuery)
       .sort({ pop: -1 })
       .limit(8)
       .project({ _id: 0, name: 1, region: 1, lat: 1, lng: 1 })
       .toArray()
 
-    // Якщо по префіксу мало — додатково шукаємо входження
+    // Якщо мало — шукаємо входження
     if (results.length < 4) {
+      const anywhereQuery = {
+        $or: [
+          { nameLower: { $regex: qEsc, $options: "i" } },
+          { aliases: { $regex: qEsc, $options: "i" } },
+        ]
+      }
       const extra = await db
         .collection("places")
-        .find({
-          nameLower: { $regex: escapeRegex(q), $options: "i" },
-        })
+        .find(anywhereQuery)
         .sort({ pop: -1 })
         .limit(8)
         .project({ _id: 0, name: 1, region: 1, lat: 1, lng: 1 })
         .toArray()
 
-      // Об'єднуємо без дублів
-      const seen = new Set(results.map((r) => r.name))
+      const seen = new Set(results.map((r: any) => r.name))
       for (const item of extra) {
         if (!seen.has(item.name)) {
           results.push(item)
