@@ -134,7 +134,7 @@ export default function PlaceAutocomplete({
             border: "1.5px solid #E5E7EB",
             borderRadius: 12,
             boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            zIndex: 1000,
+            zIndex: 9999,
             margin: 0,
             padding: "4px 0",
             listStyle: "none",

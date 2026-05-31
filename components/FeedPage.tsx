@@ -191,30 +191,53 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
             {/* Група 1: Роль */}
             <div className="flex gap-1">
-              {(["all", "driver", "passenger"] as RoleFilter[]).map(r => (
-                <button key={r} onClick={() => setRoleFilter(r)}
-                  className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all"
-                  style={roleFilter === r
-                    ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
-                    : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
-                  {r === "all" ? "Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
-                </button>
-              ))}
+              {(["all", "driver", "passenger"] as RoleFilter[]).map(r => {
+                const isActive = roleFilter === r
+                const isAll = r === "all"
+                const filterOn = roleFilter !== "all"
+                // "Всі" з помаранчевим border коли інший фільтр активний
+                const allSignal = isAll && filterOn
+                return (
+                  <button key={r} onClick={() => setRoleFilter(r)}
+                    className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1"
+                    style={isActive && !isAll
+                      ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
+                      : isActive && isAll
+                      ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
+                      : allSignal
+                      ? { background: "white", borderColor: "#F59E0B", color: "#374151", borderWidth: 2 }
+                      : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
+                    {isAll ? "Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
+                    {isActive && !isAll && <span style={{ marginLeft: 2, opacity: 0.85 }}>×</span>}
+                  </button>
+                )
+              })}
             </div>
 
             <div className="w-px bg-[#E5E7EB] self-stretch" />
 
             {/* Група 2: Тип поїздки */}
             <div className="flex gap-1">
-              {(["all", "regular", "once"] as TripTypeFilter[]).map(t => (
-                <button key={t} onClick={() => setTripTypeFilter(t)}
-                  className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all"
-                  style={tripTypeFilter === t
-                    ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
-                    : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
-                  {t === "all" ? "Всі" : t === "regular" ? "🔄 Регулярна" : "📅 Разова"}
-                </button>
-              ))}
+              {(["all", "regular", "once"] as TripTypeFilter[]).map(t => {
+                const isActive = tripTypeFilter === t
+                const isAll = t === "all"
+                const filterOn = tripTypeFilter !== "all"
+                const allSignal = isAll && filterOn
+                return (
+                  <button key={t} onClick={() => setTripTypeFilter(t)}
+                    className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1"
+                    style={isActive && !isAll
+                      ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
+                      : isActive && isAll
+                      ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
+                      : allSignal
+                      ? { background: "white", borderColor: "#F59E0B", color: "#374151", borderWidth: 2 }
+                      : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
+                    {t === "all" ? "Всі" : t === "regular" ? "🔄 Регулярна" : "📅 Разова"}
+                    {isActive && !isAll && <span style={{ marginLeft: 2, opacity: 0.85 }}>×</span>}
+                  </button>
+                )
+              })}
             </div>
 
             <div className="w-px bg-[#E5E7EB] self-stretch" />
