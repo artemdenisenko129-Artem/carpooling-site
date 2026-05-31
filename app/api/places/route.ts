@@ -57,10 +57,4 @@ export async function GET(request: Request) {
     return NextResponse.json(results.slice(0, 8))
   } catch (err) {
     console.error("places API error:", err)
-    return NextResponse.json([], { status: 500 })
-  }
-}
-
-function escapeRegex(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-}
+    

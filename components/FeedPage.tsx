@@ -174,7 +174,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                     setToVal(v)
                     if (place) doSearch(fromVal, v)
                   }}
-                  placeholder="Куди (уточнення)"
+                  placeholder="Місто або мікрорайон"
                   dotColor="red"
                   inputClassName="bg-transparent text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
                 />
@@ -340,11 +340,4 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
           href="/new"
           className="pointer-events-auto block text-center rounded-2xl text-base font-bold text-white no-underline transition-colors py-4"
           style={{ background: "#5B8FD9", boxShadow: "0 4px 20px rgba(91,143,217,0.4)" }}
-        >
-          + Створити оголошення
-        </Link>
-      </div>
-
-    </div>
-  )
-}
+     

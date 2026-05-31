@@ -1,4 +1,4 @@
-export default function LogoSVG({ size = 40 }: { size?: number }) {
+export default function LogoSVG({ size = 27 }: { size?: number }) {
   const h = Math.round(size * 1.375)
   return (
     <svg width={size} height={h} viewBox="0 0 32 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

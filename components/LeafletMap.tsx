@@ -9,28 +9,37 @@ interface Props {
   highlightId?: string
 }
 
-const DRIVER_COLOR   = "#E24B4A"
+const DRIVER_COLOR    = "#E24B4A"
 const PASSENGER_COLOR = "#378ADD"
-const INACTIVE_COLOR  = "#B4B2A9"
-
-const INACTIVE_RING = "#FFE500"
+const INACTIVE_FILL   = "#B4B2A9"
 
 function makeIcon(L: any, role: "driver"|"passenger", isEnd: boolean, active: boolean) {
-  const label = role === "driver" ? "В" : "П"
-  if (isEnd) {
-    const color = active ? (role === "driver" ? DRIVER_COLOR : PASSENGER_COLOR) : INACTIVE_COLOR
-    const border = active ? "white" : INACTIVE_RING
-    const size = active ? 28 : 22
-    const html = `<div style="width:${size}px;height:${size+6}px;position:relative">` +
-      `<div style="position:absolute;top:0;left:${(size-size*0.85)/2}px;width:${size*0.85}px;height:${size*0.85}px;background:${color};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid ${border};box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>` +
-      `<div style="position:absolute;top:1px;left:0;width:${size}px;height:${size*0.85}px;display:flex;align-items:center;justify-content:center;font-size:${active?11:9}px;font-weight:700;color:white;font-family:sans-serif">${label}</div>` +
-      `</div>`
-    return L.divIcon({ className: "", html, iconSize: [size, size+6], iconAnchor: [size/2, size+6] })
+  const roleColor = role === "driver" ? DRIVER_COLOR : PASSENGER_COLOR
+  const fill = active ? roleColor : INACTIVE_FILL
+  const flag = isEnd ? `<span style="position:absolute;top:0;left:0;width:100%;height:85%;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;pointer-events:none">🏁</span>` : ""
+
+  if (role === "driver") {
+    // Краплина: нормальна (22×30) або кінцева (28×38)
+    const w = isEnd ? 28 : 22
+    const h = isEnd ? 38 : 30
+    const cx = w / 2
+    const r = w / 2 - 2        // радіус кола краплини
+    const ty = r + 2            // центр кола по Y
+    const boty = h - 2          // кінчик краплини
+    const path = `M${cx},${boty} L${cx - r * 0.55},${ty + r * 0.7} A${r},${r},0,1,1,${cx + r * 0.55},${ty + r * 0.7} Z`
+    const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">` +
+      `<path d="${path}" fill="${fill}" stroke="${roleColor}" stroke-width="2.5" stroke-linejoin="round"/>` +
+      `</svg>`
+    const html = `<div style="position:relative;width:${w}px;height:${h}px">${svg}${flag}</div>`
+    return L.divIcon({ className: "", html, iconSize: [w, h], iconAnchor: [cx, h] })
+  } else {
+    // Коло: нормальне (18×18) або кінцеве (24×24)
+    const s = isEnd ? 24 : 18
+    const border = `3px solid ${roleColor}`
+    const shadow = active ? `0 2px 8px rgba(0,0,0,0.3)` : `0 1px 3px rgba(0,0,0,0.2)`
+    const html = `<div style="position:relative;width:${s}px;height:${s}px;border-radius:50%;background:${fill};border:${border};box-shadow:${shadow}">${flag}</div>`
+    return L.divIcon({ className: "", html, iconSize: [s, s], iconAnchor: [s/2, s/2] })
   }
-  // Початкова/проміжна — маленька сіра крапка з жовтим кільцем
-  const dotSize = 10
-  const html = `<div style="width:${dotSize}px;height:${dotSize}px;background:#B4B2A9;border-radius:50%;border:2px solid ${INACTIVE_RING};box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div>`
-  return L.divIcon({ className: "", html, iconSize: [dotSize, dotSize], iconAnchor: [dotSize/2, dotSize/2] })
 }
 
 export default function LeafletMap({ announcements, highlightId }: Props) {
@@ -239,13 +248,4 @@ export default function LeafletMap({ announcements, highlightId }: Props) {
                 </a>
               : <div style={{ flex: 1, textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.4)", padding: "9px 0" }}>Увійдіть щоб написати</div>
             }
-            <a href={`/announcement/${sheet._id}?back=${encodeURIComponent(`/?view=map&id=${sheet._id}`)}`}
-              style={{ padding: "9px 12px", background: "rgba(34,197,94,0.15)", color: "#4ADE80", borderRadius: 10, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap", border: "1.5px solid #4ADE80", fontWeight: 700 }}>
-              Деталі →
-            </a>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+            <a href={`/announcement/${sheet._id}?back=${encodeURIComponent(`/?view=map&id=${sh

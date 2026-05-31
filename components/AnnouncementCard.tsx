@@ -132,8 +132,8 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
               style={isDriver
-                ? { background: "#EBF2FC", color: "#3A6BBF" }
-                : { background: "#FDECEA", color: "#E53935" }
+                ? { background: "#FDECEA", color: "#E53935" }
+                : { background: "#EBF2FC", color: "#3A6BBF" }
               }
             >
               {getInitials(a.telegramUsername ?? "", a.authorName)}
@@ -149,8 +149,8 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
             <span
               className="text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wide"
               style={isDriver
-                ? { background: "#EBF2FC", color: "#3A6BBF" }
-                : { background: "#FDECEA", color: "#E53935" }
+                ? { background: "#FDECEA", color: "#E53935" }
+                : { background: "#EBF2FC", color: "#3A6BBF" }
               }
             >
               {isDriver ? "Водій" : "Пасажир"}
