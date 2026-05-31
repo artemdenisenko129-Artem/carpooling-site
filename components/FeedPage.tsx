@@ -1,6 +1,5 @@
 "use client"
 import { useState, useTransition, Suspense, useEffect } from "react"
-import Script from "next/script"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import dynamic from "next/dynamic"
@@ -33,7 +32,6 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
   const [isPending, startTransition] = useTransition()
   const [view, setView] = useState<View>("list")
   const [mapEverOpened, setMapEverOpened] = useState(false)
-  const [leafletReady, setLeafletReady] = useState(false)
   const [highlightId, setHighlightId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
@@ -383,15 +381,6 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
         </div>
       )}
 
-      {/* Leaflet — завантажується тільки коли відкрита карта */}
-      {mapEverOpened && (
-        <Script
-          src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
-          strategy="afterInteractive"
-          onLoad={() => setLeafletReady(true)}
-        />
-      )}
-
       {/* Карта — монтується тільки після першого відкриття, потім залишається */}
       {mapEverOpened && (
         <div style={{ display: view === "map" ? "block" : "none", position: "relative", zIndex: 1 }} className="pb-24">
@@ -401,8 +390,7 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
                 <div className="w-8 h-8 rounded-full border-2 border-[#5B8FD9] border-t-transparent animate-spin" />
               </div>
             }>
-              {leafletReady && <LeafletMap announcements={filtered} highlightId={highlightId} />}
-              {!leafletReady && <div className="flex items-center justify-center" style={{ height: 440 }}><div className="w-8 h-8 rounded-full border-2 border-[#5B8FD9] border-t-transparent animate-spin" /></div>}
+              <LeafletMap announcements={filtered} highlightId={highlightId} />
             </Suspense>
           </MapErrorBoundary>
         </div>
