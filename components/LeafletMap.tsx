@@ -13,33 +13,30 @@ const DRIVER_COLOR    = "#E24B4A"
 const PASSENGER_COLOR = "#378ADD"
 const INACTIVE_FILL   = "#B4B2A9"
 
-function makeIcon(L: any, role: "driver"|"passenger", isEnd: boolean, active: boolean) {
+function makeIcon(L: any, role: "driver"|"passenger", active: boolean) {
   const roleColor = role === "driver" ? DRIVER_COLOR : PASSENGER_COLOR
   const fill = active ? roleColor : INACTIVE_FILL
-  const flag = isEnd ? `<span style="position:absolute;top:0;left:0;width:100%;height:85%;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;pointer-events:none">🏁</span>` : ""
+  const w = 22, h = 30, cx = 11
+  const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">` +
+    `<path d="M11,28 C11,28 3,18 3,11 A8,8,0,1,1,19,11 C19,18 11,28 11,28 Z" fill="${fill}" stroke="${roleColor}" stroke-width="2.5" stroke-linejoin="round"/>` +
+    `</svg>`
+  return L.divIcon({ className: "", html: svg, iconSize: [w, h], iconAnchor: [cx, h] })
+}
 
-  if (role === "driver") {
-    // Краплина: нормальна (22×30) або кінцева (28×38)
-    const w = isEnd ? 28 : 22
-    const h = isEnd ? 38 : 30
-    const cx = w / 2
-    const r = w / 2 - 2        // радіус кола краплини
-    const ty = r + 2            // центр кола по Y
-    const boty = h - 2          // кінчик краплини
-    const path = `M${cx},${boty} L${cx - r * 0.55},${ty + r * 0.7} A${r},${r},0,1,1,${cx + r * 0.55},${ty + r * 0.7} Z`
-    const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">` +
-      `<path d="${path}" fill="${fill}" stroke="${roleColor}" stroke-width="2.5" stroke-linejoin="round"/>` +
-      `</svg>`
-    const html = `<div style="position:relative;width:${w}px;height:${h}px">${svg}${flag}</div>`
-    return L.divIcon({ className: "", html, iconSize: [w, h], iconAnchor: [cx, h] })
-  } else {
-    // Коло: нормальне (18×18) або кінцеве (24×24)
-    const s = isEnd ? 24 : 18
-    const border = `3px solid ${roleColor}`
-    const shadow = active ? `0 2px 8px rgba(0,0,0,0.3)` : `0 1px 3px rgba(0,0,0,0.2)`
-    const html = `<div style="position:relative;width:${s}px;height:${s}px;border-radius:50%;background:${fill};border:${border};box-shadow:${shadow}">${flag}</div>`
-    return L.divIcon({ className: "", html, iconSize: [s, s], iconAnchor: [s/2, s/2] })
-  }
+// Зміщує точки з однаковими координатами щоб не перекривались (~150м)
+function deduplicateCoords(points: { lat: number; lng: number }[]): { lat: number; lng: number }[] {
+  const seen = new Map<string, number>()
+  const offsets = [
+    [0, 0], [0.0015, 0], [-0.0015, 0], [0, 0.002], [0, -0.002],
+    [0.001, 0.001], [-0.001, 0.001], [0.001, -0.001], [-0.001, -0.001],
+  ]
+  return points.map(p => {
+    const key = `${p.lat.toFixed(4)},${p.lng.toFixed(4)}`
+    const n = seen.get(key) ?? 0
+    seen.set(key, n + 1)
+    const [dlat, dlng] = offsets[Math.min(n, offsets.length - 1)]
+    return { lat: p.lat + dlat, lng: p.lng + dlng }
+  })
 }
 
 export default function LeafletMap({ announcements, highlightId }: Props) {
@@ -100,7 +97,7 @@ export default function LeafletMap({ announcements, highlightId }: Props) {
     if (!activeRef.current) return
     const L = window.L
     activeRef.current.markers.forEach(mk => {
-      mk.setIcon(makeIcon(L, mk._role, mk._isEnd, false))
+      mk.setIcon(makeIcon(L, mk._role, false))
     })
     activeRef.current.line.setStyle({ opacity: 0 })
     activeRef.current = null
@@ -108,7 +105,7 @@ export default function LeafletMap({ announcements, highlightId }: Props) {
 
   function activate(L: any, markers: any[], line: any, ann: Announcement) {
     deactivate()
-    markers.forEach(mk => mk.setIcon(makeIcon(L, mk._role, mk._isEnd, true)))
+    markers.forEach(mk => mk.setIcon(makeIcon(L, mk._role, true)))
     line.setStyle({ opacity: 0.75 })
     activeRef.current = { markers, line }
     setSheet(ann)
@@ -131,12 +128,22 @@ export default function LeafletMap({ announcements, highlightId }: Props) {
 
     const allPoints: [number, number][] = []
 
+    // Збираємо всі точки для dedup offset
+    const allRawPts = withCoords.flatMap(a => [
+      { lat: a.fromLat!, lng: a.fromLng! },
+      ...(a.waypoints ?? []).map(w => ({ lat: w.lat, lng: w.lng })),
+      { lat: a.toLat!, lng: a.toLng! },
+    ])
+    const dedupedPts = deduplicateCoords(allRawPts)
+    let ptIdx = 0
+
     withCoords.forEach(a => {
-      const pts = [
-        { lat: a.fromLat!, lng: a.fromLng!, isEnd: false },
-        ...(a.waypoints ?? []).map(w => ({ lat: w.lat, lng: w.lng, isEnd: false })),
-        { lat: a.toLat!, lng: a.toLng!, isEnd: true },
+      const rawPts = [
+        { lat: a.fromLat!, lng: a.fromLng! },
+        ...(a.waypoints ?? []).map(w => ({ lat: w.lat, lng: w.lng })),
+        { lat: a.toLat!, lng: a.toLng! },
       ]
+      const pts = rawPts.map(() => dedupedPts[ptIdx++])
       const latlngs: [number, number][] = pts.map(p => [p.lat, p.lng])
       const lineColor = a.role === "driver" ? DRIVER_COLOR : PASSENGER_COLOR
       const routeLine = L.polyline(latlngs, { color: lineColor, weight: 2.5, opacity: 0, dashArray: "6 5" }).addTo(map)
@@ -148,8 +155,8 @@ export default function LeafletMap({ announcements, highlightId }: Props) {
       }
 
       const markers = pts.map(p => {
-        const m = L.marker([p.lat, p.lng], { icon: makeIcon(L, a.role, p.isEnd, false) })
-        m._role = a.role; m._isEnd = p.isEnd
+        const m = L.marker([p.lat, p.lng], { icon: makeIcon(L, a.role, false) })
+        m._role = a.role
         m.on("click", (e: any) => { e.originalEvent?.stopPropagation(); activate(L, markers, routeLine, a) })
         m.addTo(map)
         layersRef.current.push(m)
