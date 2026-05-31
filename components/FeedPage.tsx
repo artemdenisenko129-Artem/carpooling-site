@@ -202,15 +202,13 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 return (
                   <button key={r} onClick={() => setRoleFilter(r)}
                     className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1"
-                    style={isActive && !isAll
-                      ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
-                      : isActive && isAll
+                    style={isActive
                       ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
                       : allSignal
                       ? { background: "white", borderColor: "#F59E0B", color: "#374151", borderWidth: 2 }
                       : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
                     {isAll ? "Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
-                    {isActive && !isAll && <span style={{ marginLeft: 2, opacity: 0.85 }}>×</span>}
+                    {allSignal && <span style={{ fontSize: 13, lineHeight: 1, opacity: 0.7 }}>×</span>}
                   </button>
                 )
               })}
@@ -228,15 +226,13 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 return (
                   <button key={t} onClick={() => setTripTypeFilter(t)}
                     className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1"
-                    style={isActive && !isAll
-                      ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
-                      : isActive && isAll
+                    style={isActive
                       ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
                       : allSignal
                       ? { background: "white", borderColor: "#F59E0B", color: "#374151", borderWidth: 2 }
                       : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
                     {t === "all" ? "Всі" : t === "regular" ? "🔄 Регулярна" : "📅 Разова"}
-                    {isActive && !isAll && <span style={{ marginLeft: 2, opacity: 0.85 }}>×</span>}
+                    {allSignal && <span style={{ fontSize: 13, lineHeight: 1, opacity: 0.7 }}>×</span>}
                   </button>
                 )
               })}
