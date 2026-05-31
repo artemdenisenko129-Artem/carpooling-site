@@ -19,12 +19,13 @@ import type { Announcement } from "../types/announcement"
 
 interface Props {
   announcements: Announcement[]
+  initialHasMore?: boolean
   initialFrom: string
   initialTo: string
   loadError?: boolean
 }
 
-export default function FeedPage({ announcements, initialFrom, initialTo, loadError }: Props) {
+export default function FeedPage({ announcements, initialHasMore = false, initialFrom, initialTo, loadError }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
@@ -51,6 +52,31 @@ export default function FeedPage({ announcements, initialFrom, initialTo, loadEr
   const [communityFilter, setCommunityFilter] = useState("")
   const [communityFocus, setCommunityFocus] = useState(false)
 
+  const [allAnnouncements, setAllAnnouncements] = useState<Announcement[]>(announcements)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  async function loadMore() {
+    if (isLoadingMore || !hasMore) return
+    setIsLoadingMore(true)
+    try {
+      const nextPage = currentPage + 1
+      const params = new URLSearchParams({ page: String(nextPage), limit: "20" })
+      if (initialFrom.trim()) params.set("from", initialFrom.trim())
+      if (initialTo.trim()) params.set("to", initialTo.trim())
+      const res = await fetch("/api/announcements?" + params.toString())
+      const data = await res.json()
+      if (data.items) {
+        setAllAnnouncements(prev => [...prev, ...data.items])
+        setHasMore(data.hasMore)
+        setCurrentPage(nextPage)
+      }
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
+
   const { user, isLoggedIn } = useSession()
 
   function doSearch(from: string, to: string) {
@@ -74,7 +100,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo, loadEr
     startTransition(() => router.push("/"))
   }
 
-  const filtered = announcements.filter((a) => {
+  const filtered = allAnnouncements.filter((a) => {
     if (roleFilter === "driver"    && a.role !== "driver")    return false
     if (roleFilter === "passenger" && a.role !== "passenger") return false
     if (tripTypeFilter === "regular" && a.tripType !== "regular") return false
@@ -266,7 +292,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo, loadEr
               {communityFocus && (() => {
                 const term = communityFilter.trim().toLowerCase()
                 const options = Array.from(new Set(
-                  announcements.map(a => a.community).filter((c): c is string => !!c && c.toLowerCase().includes(term) && c.toLowerCase() !== term)
+                  allAnnouncements.map(a => a.community).filter((c): c is string => !!c && c.toLowerCase().includes(term) && c.toLowerCase() !== term)
                 )).slice(0, 6)
                 return options.length > 0 ? (
                   <div style={{ position: "absolute", top: "110%", left: 0, zIndex: 9999, background: "white", border: "1px solid #E5E7EB", borderRadius: 10, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 140, overflow: "hidden" }}>
@@ -332,9 +358,23 @@ export default function FeedPage({ announcements, initialFrom, initialTo, loadEr
               <p className="text-xs text-[#9CA3AF] mt-1">Спробуй інший маршрут або зміни фільтри</p>
             </div>
           ) : (
-            filtered.map((a) => (
-              <AnnouncementCard key={a._id} announcement={a} isLoggedIn={isLoggedIn} currentUserId={user?.id} />
-            ))
+            <>
+              {filtered.map((a) => (
+                <AnnouncementCard key={a._id} announcement={a} isLoggedIn={isLoggedIn} currentUserId={user?.id} />
+              ))}
+              {hasMore && (
+                <button
+                  onClick={loadMore}
+                  disabled={isLoadingMore}
+                  className="w-full py-3 rounded-2xl text-sm font-semibold border transition-all"
+                  style={isLoadingMore
+                    ? { background: "#F3F4F6", borderColor: "#E5E7EB", color: "#9CA3AF", cursor: "not-allowed" }
+                    : { background: "white", borderColor: "#5B8FD9", color: "#3A6BBF", cursor: "pointer" }}
+                     >
+                  {isLoadingMore ? "Завантажую..." : "Показати ще 20"}
+                </button>
+              )}
+            </>
           )}
         </div>
       )}

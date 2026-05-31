@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   },
 }
 
+const PAGE_LIMIT = 20
+
 async function getAnnouncements(from?: string, to?: string) {
   const client = await clientPromise
   const db = client.db("carpooling")
@@ -38,10 +40,6 @@ async function getAnnouncements(from?: string, to?: string) {
     ],
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let items: any[]
-
-  // Функція: НП зустрічається у from, to або waypoints
   function npMatch(np: string) {
     const r = { $regex: np, $options: "i" }
     return {
@@ -53,25 +51,28 @@ async function getAnnouncements(from?: string, to?: string) {
     }
   }
 
-  const query: Record<string, unknown> = { ...activeFilter }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const query: Record<string, any> = { ...activeFilter }
   if (from?.trim() && to?.trim()) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (query as any).$and = [npMatch(from.trim()), npMatch(to.trim())]
+    query.$and = [npMatch(from.trim()), npMatch(to.trim())]
   } else if (from?.trim()) {
     Object.assign(query, npMatch(from.trim()))
   } else if (to?.trim()) {
     Object.assign(query, npMatch(to.trim()))
   }
-  items = await db.collection("announcements").find(query).sort({ createdAt: -1 }).limit(50).toArray()
 
-  const seen = new Set<string>()
-  const unique: typeof items = []
-  for (const item of items) {
-    const key = "id:" + String(item._id)
-    if (!seen.has(key)) { seen.add(key); unique.push(item) }
+  // Fetch one extra to know if there are more pages
+  const items = await db.collection("announcements")
+    .find(query)
+    .sort({ createdAt: -1 })
+    .limit(PAGE_LIMIT + 1)
+    .toArray()
+
+  const hasMore = items.length > PAGE_LIMIT
+  return {
+    items: JSON.parse(JSON.stringify(items.slice(0, PAGE_LIMIT))),
+    hasMore,
   }
-
-  return JSON.parse(JSON.stringify(unique.slice(0, 40)))
 }
 
 export default async function Home({
@@ -80,10 +81,14 @@ export default async function Home({
   searchParams: Promise<{ from?: string; to?: string }>
 }) {
   const params = await searchParams
-  let announcements: Awaited<ReturnType<typeof getAnnouncements>> = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let items: any[] = []
+  let hasMore = false
   let loadError = false
   try {
-    announcements = await getAnnouncements(params.from, params.to)
+    const result = await getAnnouncements(params.from, params.to)
+    items = result.items
+    hasMore = result.hasMore
   } catch (_) {
     loadError = true
   }
@@ -91,7 +96,9 @@ export default async function Home({
   return (
     <Suspense>
       <FeedPage
-        announcements={announcements}
+        key={(params.from ?? "") + "|" + (params.to ?? "")}
+        announcements={items}
+        initialHasMore={hasMore}
         initialFrom={params.from ?? ""}
         initialTo={params.to ?? ""}
         loadError={loadError}
