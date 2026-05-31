@@ -311,25 +311,6 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
         </div>
 
 
-        {/* Популярні маршрути — завжди видимі */}
-        <div className="border-b border-[#E5E7EB] px-4 py-2">
-          <p className="text-[10px] text-[#9CA3AF] uppercase tracking-wide mb-1.5">Популярні маршрути</p>
-          <div className="flex flex-wrap gap-1.5">
-            {ROUTES.filter(r => r.to === "Київ").slice(0, 8).map(r => (
-              <Link key={r.slug} href={`/route/${r.slug}`}
-                className="px-2.5 py-1 rounded-full text-xs font-medium no-underline transition-colors"
-                style={{ background: "#EBF2FC", color: "#3A6BBF" }}>
-                {r.from} →
-              </Link>
-            ))}
-            <Link href="/about"
-              className="px-2.5 py-1 rounded-full text-xs font-medium no-underline"
-              style={{ background: "#F3F4F6", color: "#9CA3AF" }}>
-              Про сервіс
-            </Link>
-          </div>
-        </div>
-
         {/* Перемикач список/карта */}
         <div className="border-b border-[#E5E7EB] flex">
           <button
@@ -430,17 +411,11 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
             </a>
           </div>
 
-          {/* Популярні напрямки */}
+          {/* Міста */}
           <div className="mb-4 pb-4 border-b border-[#F3F4F6]">
-            <p className="font-semibold text-[#6B7280] mb-2">Популярні напрямки</p>
+            <p className="font-semibold text-[#6B7280] mb-2">Міста поруч з Києвом</p>
             <div className="flex flex-wrap gap-x-3 gap-y-1">
-              {[
-                { slug: "brovary", name: "Бровари" }, { slug: "irpin", name: "Ірпінь" },
-                { slug: "bucha", name: "Буча" }, { slug: "vyshneveye", name: "Вишневе" },
-                { slug: "boryspil", name: "Бориспіль" }, { slug: "vasylkiv", name: "Васильків" },
-                { slug: "boyarka", name: "Боярка" }, { slug: "vyshhorod", name: "Вишгород" },
-                { slug: "obukhiv", name: "Обухів" },
-              ].map(c => (
+              {CITIES.map(c => (
                 <Link key={c.slug} href={`/city/${c.slug}`}
                   className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">
                   {c.name}
@@ -449,9 +424,23 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
             </div>
           </div>
 
+          {/* Маршрути */}
+          <div className="mb-4 pb-4 border-b border-[#F3F4F6]">
+            <p className="font-semibold text-[#6B7280] mb-2">Маршрути → Київ</p>
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
+              {ROUTES.filter(r => r.to === "Київ").map(r => (
+                <Link key={r.slug} href={`/route/${r.slug}`}
+                  className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">
+                  {r.from}
+                </Link>
+              ))}
+            </div>
+          </div>
+
           {/* Копірайт і посилання */}
           <div className="flex gap-4 justify-center flex-wrap text-center">
-            <Link href="/rules" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">Правила сервісу</Link>
+            <Link href="/about" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">Про сервіс</Link>
+            <Link href="/rules" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">Правила</Link>
             <a href="https://t.me/poputky_ua" target="_blank" rel="noopener noreferrer"
               className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Telegram-канал</a>
             <span>Попутки UA © 2026</span>
