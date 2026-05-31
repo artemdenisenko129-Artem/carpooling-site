@@ -149,8 +149,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 />
                 {fromVal && (
                   <button type="button" onClick={() => { setFromVal(""); doSearch("", toVal) }}
-                    className="shrink-0 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-all"
-                    style={{ width: 18, height: 18, fontSize: 11, fontWeight: 700, lineHeight: 1 }}>×</button>
+                    className="shrink-0 text-[#C0C4CC] hover:text-[#9CA3AF] transition-colors"
+                    style={{ fontSize: 16, lineHeight: 1, background: "none", border: "none", padding: "0 2px", cursor: "pointer" }}>×</button>
                 )}
               </div>
               <button
@@ -181,8 +181,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 />
                 {toVal && (
                   <button type="button" onClick={() => { setToVal(""); doSearch(fromVal, "") }}
-                    className="shrink-0 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-all"
-                    style={{ width: 18, height: 18, fontSize: 11, fontWeight: 700, lineHeight: 1 }}>×</button>
+                    className="shrink-0 text-[#C0C4CC] hover:text-[#9CA3AF] transition-colors"
+                    style={{ fontSize: 16, lineHeight: 1, background: "none", border: "none", padding: "0 2px", cursor: "pointer" }}>×</button>
                 )}
               </div>
             )}
