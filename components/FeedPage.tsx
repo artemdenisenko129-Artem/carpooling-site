@@ -340,4 +340,11 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
           href="/new"
           className="pointer-events-auto block text-center rounded-2xl text-base font-bold text-white no-underline transition-colors py-4"
           style={{ background: "#5B8FD9", boxShadow: "0 4px 20px rgba(91,143,217,0.4)" }}
-     
+        >
+          + Створити оголошення
+        </Link>
+      </div>
+
+    </div>
+  )
+}
