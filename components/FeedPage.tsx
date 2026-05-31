@@ -149,7 +149,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 />
                 {fromVal && (
                   <button type="button" onClick={() => { setFromVal(""); doSearch("", toVal) }}
-                    className="text-[#9CA3AF] text-xs shrink-0">✕</button>
+                    className="shrink-0 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-all"
+                    style={{ width: 18, height: 18, fontSize: 11, fontWeight: 700, lineHeight: 1 }}>×</button>
                 )}
               </div>
               <button
@@ -180,7 +181,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 />
                 {toVal && (
                   <button type="button" onClick={() => { setToVal(""); doSearch(fromVal, "") }}
-                    className="text-[#9CA3AF] text-xs shrink-0">✕</button>
+                    className="shrink-0 flex items-center justify-center rounded-full text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-all"
+                    style={{ width: 18, height: 18, fontSize: 11, fontWeight: 700, lineHeight: 1 }}>×</button>
                 )}
               </div>
             )}
@@ -260,7 +262,8 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                 />
                 {communityFilter && (
                   <button onClick={() => setCommunityFilter("")}
-                    className="text-xs ml-0.5" style={{ color: "rgba(255,255,255,0.8)" }}>✕</button>
+                    className="shrink-0 flex items-center justify-center rounded-full transition-all"
+                    style={{ width: 18, height: 18, fontSize: 11, fontWeight: 700, lineHeight: 1, color: "rgba(255,255,255,0.9)", background: "rgba(255,255,255,0.2)" }}>×</button>
                 )}
               </div>
               {communityFocus && (() => {
