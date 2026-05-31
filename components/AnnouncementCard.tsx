@@ -205,9 +205,7 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
           {a.community && (
             <span className="text-xs bg-[#EBF2FC] text-[#3A6BBF] px-2 py-0.5 rounded-full">&#127968; {a.community}</span>
           )}
-          {a.tripScope === "intercity" && (
-            <span className="text-xs bg-[#F0FDF4] text-[#065F46] px-2 py-0.5 rounded-full">🛣 Міжміська</span>
-          )}
+
           {a._matchedAsReturn && (
             <span className="text-xs bg-[#FEF3C7] text-[#92400E] px-2 py-0.5 rounded-full">&#8617; знайдено як зворотній</span>
           )}
@@ -303,3 +301,4 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
     </div>
   )
 }
+                                                                                                                                      

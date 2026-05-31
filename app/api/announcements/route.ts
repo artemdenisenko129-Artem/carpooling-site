@@ -106,7 +106,7 @@ export async function POST(request: Request) {
     const { telegramUsername, role, from, to, aiText, isRoundTrip,
             fromLat, fromLng, toLat, toLng, waypoints,
             tripType, departureDate, schedule, departureTime,
-            phone, community, seats, returnTime, returnDate, tripScope } = body
+            phone, community, seats, returnTime, returnDate } = body
 
     if (!role || !from || !to || !aiText) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -175,7 +175,6 @@ export async function POST(request: Request) {
       ...(seats ? { seats: Math.min(8, Math.max(1, Number(seats))) } : {}),
       ...(returnTime?.trim() ? { returnTime: String(returnTime).trim() } : {}),
       ...(returnDate?.trim() ? { returnDate: String(returnDate).trim() } : {}),
-      ...(tripScope === 'suburban' || tripScope === 'intercity' ? { tripScope } : { tripScope: 'suburban' }),
     }
 
     const result = await db.collection("announcements").insertOne(doc)

@@ -10,9 +10,7 @@ import LogoSVG from "../../components/LogoSVG"
 const MapPicker = dynamic(() => import("../../components/MapPicker"), { ssr: false })
 
 
-const PLACEHOLDER_EXAMPLE = `Їду щодня з Ірпінь (ЖД вокзал) до Києва (Оболонь) і назад.
-Виїзд ~7:00, назад ~18:00. Через Гостомель, КПП.
-Є 1 місце. Пишіть в особисті.`
+const PLACEHOLDER_EXAMPLE = `Наприклад: місце зустрічі, вартість проїзду, марка та тип авто, наявність місця в багажнику — все, що хочете повідомити попутникам.`
 
 const DAYS = [
   { key: "mon", label: "Пн" }, { key: "tue", label: "Вт" },
@@ -24,7 +22,6 @@ const DAYS = [
 const inputCls = "w-full bg-transparent px-3 py-2.5 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none"
 
 type Role = "driver" | "passenger" | ""
-type TripScope = "suburban" | "intercity" | ""
 type TripType = "regular" | "once" | ""
 
 export default function NewAnnouncement() {
@@ -37,7 +34,6 @@ export default function NewAnnouncement() {
 
   const [form, setForm] = useState({
     role: "" as Role,
-    tripScope: "" as TripScope,
     from: "",
     to: "",
     fromLat: null as number | null,
@@ -95,8 +91,7 @@ export default function NewAnnouncement() {
     e.preventDefault()
     const newErrors: Record<string, string> = {}
     if (!form.role) newErrors.role = "Оберіть хто ви — водій чи пасажир"
-    if (!form.tripScope) newErrors.tripScope = "Оберіть тип маршруту"
-    if (!form.tripType) newErrors.tripType = "Оберіть як часто їдете"
+    if (!form.tripType) newErrors.tripType = "Оберіть тип поїздки"
     if (form.role === "driver" && !form.seats) newErrors.seats = "Вкажіть кількість вільних місць"
     if (!form.telegramUsername.trim() && !form.phone.trim()) newErrors.contact = "Вкажіть хоча б один спосіб зв'язку"
     if (Object.keys(newErrors).length > 0) {
@@ -189,10 +184,9 @@ export default function NewAnnouncement() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          {/* ─── 1. Хто я ─── */}
+          {/* ─── 1. Роль ─── */}
           <div>
-            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide mb-2">Хто я</p>
-            <div className="flex gap-3 mb-3"
+            <div className="flex gap-3"
               style={errors.role ? { borderRadius: 12, outline: "2px solid #E53935", outlineOffset: 2 } : {}}>
               {[
                 { val: "driver",    label: "🚗 Я — водій" },
@@ -208,23 +202,6 @@ export default function NewAnnouncement() {
               ))}
             </div>
             {errBox("role")}
-
-            <div className="flex gap-3"
-              style={errors.tripScope ? { borderRadius: 12, outline: "2px solid #E53935", outlineOffset: 2 } : {}}>
-              {([
-                { val: "suburban",  label: "🏘 Приміська/Міська" },
-                { val: "intercity", label: "🛣 Міжміська" },
-              ] as const).map(({ val, label }) => (
-                <button key={val} type="button"
-                  onClick={() => { setForm(f => ({ ...f, tripScope: val })); setErrors(e => ({ ...e, tripScope: "" })) }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all"
-                  style={form.tripScope === val
-                    ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }
-                    : { background: "white",   borderColor: "#E5E7EB",  color: "#374151" }}
-                >{label}</button>
-              ))}
-            </div>
-            {errBox("tripScope")}
           </div>
 
           {/* ─── 2. Маршрут ─── */}
@@ -330,7 +307,7 @@ export default function NewAnnouncement() {
           {/* ─── 4. Опис ─── */}
           <div>
             <label className="block text-xs font-semibold text-[#374151] uppercase tracking-wide mb-1.5">
-              Розкажіть про маршрут
+              Умови поїздки
             </label>
             <textarea
               required
@@ -345,15 +322,15 @@ export default function NewAnnouncement() {
             </p>
           </div>
 
-          {/* ─── 5. Їду ─── */}
+          {/* ─── 5. Тип поїздки ─── */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col gap-3"
             style={errors.tripType ? { borderColor: "#E53935" } : {}}>
-            <p className="text-xs font-semibold text-[#374151] uppercase tracking-wide">Їду</p>
+            <p className="text-xs text-[#9CA3AF]">поїздка</p>
 
             <div className="flex gap-2">
               {([
-                { val: "regular", label: "🔄 Регулярно" },
-                { val: "once",    label: "📅 Одного разу" },
+                { val: "regular", label: "🔄 Регулярна" },
+                { val: "once",    label: "📅 Разова" },
               ] as const).map(({ val, label }) => (
                 <button key={val} type="button"
                   onClick={() => { setForm(f => ({ ...f, tripType: val })); setErrors(e => ({ ...e, tripType: "" })) }}
@@ -474,6 +451,7 @@ export default function NewAnnouncement() {
               <label className="block text-xs text-[#6B7280] mb-1">
                 Спільнота <span className="text-[#9CA3AF] normal-case">(необов'язково)</span>
               </label>
+              <p className="text-xs text-[#9CA3AF] mb-1.5">ЖК, підприємство або університет — для пошуку поїздок з сусідами, колегами або однокурсниками.</p>
               <input type="text"
                 placeholder="ЖК Новий Автограф, КПІ, Samsung Ukraine..."
                 value={form.community}
@@ -552,3 +530,4 @@ export default function NewAnnouncement() {
     </div>
   )
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                

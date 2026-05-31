@@ -106,9 +106,6 @@ export default async function AnnouncementPage({ params }: Props) {
           {a.isRoundTrip && (
             <span className="text-xs text-[#6B7280] bg-[#F3F4F6] px-2 py-1 rounded-full">↩ туди-назад</span>
           )}
-          {a.tripScope === "intercity" && (
-            <span className="text-xs text-[#065F46] bg-[#F0FDF4] px-2 py-1 rounded-full">🛣 Міжміська</span>
-          )}
         </div>
 
         {/* Маршрут */}

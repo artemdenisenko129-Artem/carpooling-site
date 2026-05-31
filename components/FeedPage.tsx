@@ -12,7 +12,6 @@ import LogoSVG from "./LogoSVG"
 const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false })
 
 type RoleFilter = "all" | "driver" | "passenger"
-type ScopeFilter = "all" | "suburban" | "intercity"
 type TripTypeFilter = "all" | "regular" | "once"
 type View = "list" | "map"
 
@@ -44,36 +43,39 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
   const [fromVal, setFromVal] = useState(initialFrom)
   const [toVal, setToVal]   = useState(initialTo)
+  const [showSecondField, setShowSecondField] = useState(Boolean(initialTo))
 
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all")
-  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
   const [communityFilter, setCommunityFilter] = useState("")
   const [communityFocus, setCommunityFocus] = useState(false)
 
   const { user, isLoggedIn } = useSession()
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
+  function doSearch(from: string, to: string) {
     const params = new URLSearchParams()
-    if (fromVal.trim()) params.set("from", fromVal.trim())
-    if (toVal.trim())   params.set("to",   toVal.trim())
+    if (from.trim()) params.set("from", from.trim())
+    if (to.trim())   params.set("to",   to.trim())
     startTransition(() => {
       router.push(params.toString() ? "/?" + params.toString() : "/")
     })
   }
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    doSearch(fromVal, toVal)
+  }
+
   function handleReset() {
     setFromVal("")
     setToVal("")
+    setShowSecondField(false)
     startTransition(() => router.push("/"))
   }
 
   const filtered = announcements.filter((a) => {
     if (roleFilter === "driver"    && a.role !== "driver")    return false
     if (roleFilter === "passenger" && a.role !== "passenger") return false
-    if (scopeFilter === "suburban"  && a.tripScope === "intercity") return false
-    if (scopeFilter === "intercity" && a.tripScope !== "intercity") return false
     if (tripTypeFilter === "regular" && a.tripType !== "regular") return false
     if (tripTypeFilter === "once" && a.tripType !== "once") return false
     if (communityFilter && !a.community?.toLowerCase().includes(communityFilter.trim().toLowerCase())) return false
@@ -128,95 +130,102 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
         </header>
 
         {/* Пошук */}
-        <div className="border-b border-[#E5E7EB] px-4 pt-2 pb-0">
+        <div className="border-b border-[#E5E7EB] px-4 pt-2 pb-2">
           <form onSubmit={handleSearch}>
-            <div className="flex items-center gap-2 mb-2">
+            {/* Перше поле — завжди видиме */}
+            <div className="flex items-center gap-2 mb-1.5">
               <div className="flex-1 flex items-center gap-1.5 rounded-lg border bg-[#F9FAFB] px-2 py-1.5"
-                style={{ borderColor: "#E5E7EB" }}>
+                style={{ borderColor: fromVal ? "#5B8FD9" : "#E5E7EB" }}>
                 <span className="text-[#9CA3AF] text-sm shrink-0">🔍</span>
                 <PlaceAutocomplete
                   value={fromVal}
-                  onChange={(v) => setFromVal(v)}
-                  placeholder="Населений пункт"
+                  onChange={(v, place) => {
+                    setFromVal(v)
+                    if (place) doSearch(v, toVal)
+                  }}
+                  placeholder="Місто або мікрорайон"
                   dotColor="blue"
                   inputClassName="bg-transparent text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
                 />
-                {fromVal && <button type="button" onClick={() => setFromVal("")} className="text-[#9CA3AF] text-xs shrink-0">✕</button>}
+                {fromVal && (
+                  <button type="button" onClick={() => { setFromVal(""); doSearch("", toVal) }}
+                    className="text-[#9CA3AF] text-xs shrink-0">✕</button>
+                )}
               </div>
-              <div className="flex-1 flex items-center gap-1.5 rounded-lg border bg-[#F9FAFB] px-2 py-1.5"
-                style={{ borderColor: "#E5E7EB" }}>
-                <span className="text-[#9CA3AF] text-sm shrink-0">🔍</span>
+              <button
+                type="button"
+                onClick={() => setShowSecondField(s => !s)}
+                title="Уточнити напрямок"
+                className="shrink-0 w-8 h-8 rounded-lg border text-sm font-bold transition-all flex items-center justify-center"
+                style={showSecondField
+                  ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF" }
+                  : { background: "white", borderColor: "#D1D5DB", color: "#9CA3AF" }}
+              >{showSecondField ? "−" : "+"}</button>
+            </div>
+
+            {/* Друге поле — приховане за "+" */}
+            {showSecondField && (
+              <div className="flex items-center gap-1.5 rounded-lg border bg-[#F9FAFB] px-2 py-1.5 mb-1.5"
+                style={{ borderColor: toVal ? "#E53935" : "#E5E7EB" }}>
+                <span className="text-[#9CA3AF] text-sm shrink-0">🎯</span>
                 <PlaceAutocomplete
                   value={toVal}
-                  onChange={(v) => setToVal(v)}
-                  placeholder="Населений пункт"
+                  onChange={(v, place) => {
+                    setToVal(v)
+                    if (place) doSearch(fromVal, v)
+                  }}
+                  placeholder="Куди (уточнення)"
                   dotColor="red"
                   inputClassName="bg-transparent text-sm text-[#111827] outline-none placeholder-[#9CA3AF] w-full"
                 />
-                {toVal && <button type="button" onClick={() => setToVal("")} className="text-[#9CA3AF] text-xs shrink-0">✕</button>}
+                {toVal && (
+                  <button type="button" onClick={() => { setToVal(""); doSearch(fromVal, "") }}
+                    className="text-[#9CA3AF] text-xs shrink-0">✕</button>
+                )}
               </div>
-              <button
-                type="submit"
-                className="shrink-0 px-3 py-1.5 rounded-lg text-sm font-bold text-white transition-colors"
-                style={{ background: isPending ? "#93B8E8" : "#5B8FD9" }}
-                aria-label="Знайти"
-              >→</button>
-            </div>
-            {isSearchActive && (
-              <button type="button" onClick={handleReset}
-                className="flex items-center gap-1.5 text-xs font-semibold mb-1.5 px-3 py-1.5 rounded-lg border transition-all"
-                style={{ color: "#E53935", borderColor: "#FECACA", background: "#FEF2F2" }}>
-                ✕ Скинути пошук
-              </button>
             )}
           </form>
 
-          <div className="flex gap-2 pb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {(["all", "driver", "passenger"] as RoleFilter[]).map((r) => (
-              <button
-                key={r}
-                onClick={() => setRoleFilter(r)}
-                className="shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all"
-                style={roleFilter === r
-                  ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                  : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-              >
-                {r === "all" ? "🚘 Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
-              </button>
-            ))}
+          {/* Фільтри — 3 групи */}
+          <div className="flex flex-wrap gap-x-3 gap-y-1.5 pt-0.5">
 
-            {(["suburban", "intercity"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setScopeFilter(scopeFilter === s ? "all" : s)}
-                className="shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all"
-                style={scopeFilter === s
-                  ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                  : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-              >
-                {s === "suburban" ? "🏘 Приміська" : "🛣 Міжміська"}
-              </button>
-            ))}
+            {/* Група 1: Роль */}
+            <div className="flex gap-1">
+              {(["all", "driver", "passenger"] as RoleFilter[]).map(r => (
+                <button key={r} onClick={() => setRoleFilter(r)}
+                  className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all"
+                  style={roleFilter === r
+                    ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
+                    : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
+                  {r === "all" ? "Всі" : r === "driver" ? "🚗 Водій" : "💺 Пасажир"}
+                </button>
+              ))}
+            </div>
 
-            {(["regular", "once"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTripTypeFilter(tripTypeFilter === t ? "all" : t)}
-                className="shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all"
-                style={tripTypeFilter === t
-                  ? { background: "#EBF2FC", borderColor: "#5B8FD9", color: "#3A6BBF", fontWeight: 600 }
-                  : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}
-              >
-                {t === "regular" ? "🔄 Регулярно" : "📅 Одного разу"}
-              </button>
-            ))}
+            <div className="w-px bg-[#E5E7EB] self-stretch" />
 
+            {/* Група 2: Тип поїздки */}
+            <div className="flex gap-1">
+              {(["all", "regular", "once"] as TripTypeFilter[]).map(t => (
+                <button key={t} onClick={() => setTripTypeFilter(t)}
+                  className="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all"
+                  style={tripTypeFilter === t
+                    ? { background: "#5B8FD9", borderColor: "#5B8FD9", color: "white" }
+                    : { background: "white", borderColor: "#D1D5DB", color: "#374151" }}>
+                  {t === "all" ? "Всі" : t === "regular" ? "🔄 Регулярна" : "📅 Разова"}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-px bg-[#E5E7EB] self-stretch" />
+
+            {/* Група 3: Спільнота */}
             <div className="shrink-0 relative">
-              <div className="flex items-center gap-1 rounded-full border px-2 py-1 transition-all"
+              <div className="flex items-center gap-1 rounded-full border px-2.5 py-1 transition-all"
                 style={communityFilter
-                  ? { background: "#EBF2FC", borderColor: "#5B8FD9" }
+                  ? { background: "#5B8FD9", borderColor: "#5B8FD9" }
                   : { background: "white", borderColor: "#D1D5DB" }}>
-                <span className="text-xs">🏘</span>
+                <span className="text-xs" style={{ color: communityFilter ? "white" : "#374151" }}>🏘</span>
                 <input
                   value={communityFilter}
                   onChange={e => setCommunityFilter(e.target.value)}
@@ -224,10 +233,11 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                   onBlur={() => setTimeout(() => setCommunityFocus(false), 150)}
                   placeholder="Спільнота"
                   className="text-xs outline-none bg-transparent w-20"
-                  style={{ color: communityFilter ? "#3A6BBF" : "#374151" }}
+                  style={{ color: communityFilter ? "white" : "#374151" }}
                 />
                 {communityFilter && (
-                  <button onClick={() => setCommunityFilter("")} className="text-[#9CA3AF] text-xs ml-0.5">✕</button>
+                  <button onClick={() => setCommunityFilter("")}
+                    className="text-xs ml-0.5" style={{ color: "rgba(255,255,255,0.8)" }}>✕</button>
                 )}
               </div>
               {communityFocus && (() => {
@@ -240,9 +250,7 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
                     {options.map(c => (
                       <button key={c} onMouseDown={() => setCommunityFilter(c)}
                         className="block w-full text-left px-3 py-1.5 text-xs hover:bg-[#EBF2FC] transition-colors"
-                        style={{ color: "#374151" }}>
-                        🏘 {c}
-                      </button>
+                        style={{ color: "#374151" }}>🏘 {c}</button>
                     ))}
                   </div>
                 ) : null
