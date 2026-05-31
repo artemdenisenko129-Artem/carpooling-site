@@ -140,11 +140,7 @@ export default function AnnouncementCard({ announcement: a, isLoggedIn = false, 
             </div>
             <div className="min-w-0">
               <div className="text-sm font-semibold text-[#111827] truncate">
-                {a.telegramUsername
-                  ? `@${a.telegramUsername}`
-                  : a.authorName
-                  ? a.authorName
-                  : "Анонімно"}
+                {a.authorName ?? "Анонімно"}
               </div>
               <div className="text-xs text-[#9CA3AF]">{formatDate(a.createdAt ?? "")}</div>
             </div>
