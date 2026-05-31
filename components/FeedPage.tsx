@@ -52,7 +52,6 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
   const [tripTypeFilter, setTripTypeFilter] = useState<TripTypeFilter>("all")
   const [communityFilter, setCommunityFilter] = useState("")
   const [communityFocus, setCommunityFocus] = useState(false)
-  const [showRoutes, setShowRoutes] = useState(false)
 
   const [allAnnouncements, setAllAnnouncements] = useState<Announcement[]>(announcements)
   const [currentPage, setCurrentPage] = useState(0)
