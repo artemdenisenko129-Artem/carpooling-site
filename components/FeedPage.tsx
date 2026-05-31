@@ -314,7 +314,18 @@ export default function FeedPage({ announcements, initialFrom, initialTo, loadEr
             <span className="font-semibold text-[#6B7280]">{filtered.length}</span>
           </p>
 
-          {filtered.length === 0 ? (
+          {loadError ? (
+            <div className="bg-white rounded-2xl border border-[#FCA5A5] p-10 text-center">
+              <div className="text-4xl mb-3">⚠️</div>
+              <p className="text-sm text-[#6B7280] font-medium">Не вдалось завантажити оголошення</p>
+              <p className="text-xs text-[#9CA3AF] mt-1">Спробуй оновити сторінку</p>
+              <button onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                style={{ background: "#5B8FD9" }}>
+                Оновити
+              </button>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center">
               <div className="text-4xl mb-3">🔍</div>
               <p className="text-sm text-[#6B7280] font-medium">Нічого не знайдено</p>
