@@ -176,6 +176,32 @@ export default async function CityPage({ params }: Props) {
           </ol>
         </div>
 
+
+        {/* FAQ — SEO */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 mb-6">
+          <h2 className="text-sm font-bold text-[#374151] mb-4 uppercase tracking-wide">
+            Часті запитання
+          </h2>
+          <div className="flex flex-col gap-4 text-sm">
+            <div>
+              <p className="font-semibold text-[#111827] mb-1">Скільки коштує поїздка {city.name} → {city.hubCity}?</p>
+              <p className="text-[#6B7280] leading-relaxed">Ціна домовна — зазвичай на рівні маршрутки або дешевше. Водій і пасажир домовляються напряму в Telegram без комісій.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-[#111827] mb-1">Як зв'язатись з водієм або пасажиром?</p>
+              <p className="text-[#6B7280] leading-relaxed">Натисни на оголошення — побачиш Telegram-нік або номер телефону. Пиши напряму, без посередників.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-[#111827] mb-1">Чи безпечно їхати з попутником?</p>
+              <p className="text-[#6B7280] leading-relaxed">Сервіс для щоденних маршрутів — більшість водіїв їздять регулярно з одними і тими самими пасажирами. Читай відгуки, дивись профіль і довіряй своїй інтуїції.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-[#111827] mb-1">Як розмістити своє оголошення?</p>
+              <p className="text-[#6B7280] leading-relaxed">Натисни "+ Розмістити оголошення" — заповни маршрут, час і роль. Оголошення одразу з'явиться на сайті і в Telegram-каналі @poputky_ua. Безкоштовно.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Інші міста */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4">
           <h2 className="text-sm font-bold text-[#374151] mb-3 uppercase tracking-wide">Інші міста</h2>

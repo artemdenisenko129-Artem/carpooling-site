@@ -311,31 +311,23 @@ export default function FeedPage({ announcements, initialHasMore = false, initia
         </div>
 
 
-        {/* Кнопка маршрутів */}
+        {/* Популярні маршрути — завжди видимі */}
         <div className="border-b border-[#E5E7EB] px-4 py-2">
-          <button
-            onClick={() => setShowRoutes(s => !s)}
-            className="flex items-center gap-1.5 text-xs font-medium text-[#6B7280] hover:text-[#5B8FD9] transition-colors"
-          >
-            <span>🗺 Популярні маршрути</span>
-            <span style={{ fontSize: 10, display: "inline-block", transform: showRoutes ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
-          </button>
-          {showRoutes && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {ROUTES.filter(r => r.to === "Київ").map(r => (
-                <Link key={r.slug} href={`/route/${r.slug}`}
-                  className="px-2.5 py-1 rounded-full text-xs font-medium no-underline transition-colors"
-                  style={{ background: "#EBF2FC", color: "#3A6BBF" }}>
-                  {r.from} → Київ
-                </Link>
-              ))}
-              <Link href="/about"
-                className="px-2.5 py-1 rounded-full text-xs font-medium no-underline"
-                style={{ background: "#F3F4F6", color: "#6B7280" }}>
-                Про сервіс
+          <p className="text-[10px] text-[#9CA3AF] uppercase tracking-wide mb-1.5">Популярні маршрути</p>
+          <div className="flex flex-wrap gap-1.5">
+            {ROUTES.filter(r => r.to === "Київ").slice(0, 8).map(r => (
+              <Link key={r.slug} href={`/route/${r.slug}`}
+                className="px-2.5 py-1 rounded-full text-xs font-medium no-underline transition-colors"
+                style={{ background: "#EBF2FC", color: "#3A6BBF" }}>
+                {r.from} →
               </Link>
-            </div>
-          )}
+            ))}
+            <Link href="/about"
+              className="px-2.5 py-1 rounded-full text-xs font-medium no-underline"
+              style={{ background: "#F3F4F6", color: "#9CA3AF" }}>
+              Про сервіс
+            </Link>
+          </div>
         </div>
 
         {/* Перемикач список/карта */}
