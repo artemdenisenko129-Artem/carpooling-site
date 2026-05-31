@@ -21,9 +21,10 @@ interface Props {
   announcements: Announcement[]
   initialFrom: string
   initialTo: string
+  loadError?: boolean
 }
 
-export default function FeedPage({ announcements, initialFrom, initialTo }: Props) {
+export default function FeedPage({ announcements, initialFrom, initialTo, loadError }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
@@ -344,13 +345,43 @@ export default function FeedPage({ announcements, initialFrom, initialTo }: Prop
 
       {/* Футер — тільки в режимі списку */}
       {view === "list" && (
-        <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-center text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
-          <p className="mb-2">Попутки UA © 2026</p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Правила сайту</a>
-            <a href="#" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Про сервіс</a>
-            <a href="https://t.me/poputtky_ua" target="_blank" rel="noopener noreferrer"
+        <footer className="bg-white border-t border-[#E5E7EB] px-4 py-5 text-xs text-[#9CA3AF]" style={{ marginBottom: 80 }}>
+
+          {/* Про сервіс */}
+          <div className="mb-4 pb-4 border-b border-[#F3F4F6]">
+            <p className="font-semibold text-[#6B7280] mb-1">ПопуткиUA — приміські щоденні поїздки</p>
+            <p className="leading-relaxed mb-2">Безкоштовний сервіс для тих, хто щодня їде між передмістям і Києвом. Знайди водія або пасажира на своєму маршруті — домовляйтесь напряму в Telegram.</p>
+            <a href="https://t.me/poputky_ua" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[#229ED9] hover:underline font-medium">
+              ✈️ Telegram-канал @poputky_ua — нові оголошення одразу у вашому Telegram
+            </a>
+          </div>
+
+          {/* Популярні напрямки */}
+          <div className="mb-4 pb-4 border-b border-[#F3F4F6]">
+            <p className="font-semibold text-[#6B7280] mb-2">Популярні напрямки</p>
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
+              {[
+                { slug: "brovary", name: "Бровари" }, { slug: "irpin", name: "Ірпінь" },
+                { slug: "bucha", name: "Буча" }, { slug: "boryspil", name: "Бориспіль" },
+                { slug: "vasylkiv", name: "Васильків" }, { slug: "bila-tserkva", name: "Біла Церква" },
+                { slug: "fastiv", name: "Фастів" }, { slug: "vyshhorod", name: "Вишгород" },
+                { slug: "obukhiv", name: "Обухів" }, { slug: "pereiaslav", name: "Переяслав" },
+              ].map(c => (
+                <Link key={c.slug} href={`/city/${c.slug}`}
+                  className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">
+                  {c.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Копірайт і посилання */}
+          <div className="flex gap-4 justify-center flex-wrap text-center">
+            <Link href="/rules" className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors no-underline">Правила сервісу</Link>
+            <a href="https://t.me/poputky_ua" target="_blank" rel="noopener noreferrer"
               className="text-[#6B7280] hover:text-[#5B8FD9] transition-colors">Telegram-канал</a>
+            <span>Попутки UA © 2026</span>
           </div>
         </footer>
       )}

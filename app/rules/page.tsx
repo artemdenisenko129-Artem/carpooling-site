@@ -24,6 +24,41 @@ export default function RulesPage() {
         <h1 className="text-2xl font-extrabold text-[#111827] mb-2">Правила сервісу ПопуткиUA</h1>
         <p className="text-sm text-[#9CA3AF] mb-8">Версія 1.0 · Набирають чинності з 1 червня 2026 року</p>
 
+        {/* Про сервіс */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 mb-8">
+          <h2 className="text-base font-bold text-[#111827] mb-3">Що таке ПопуткиUA</h2>
+          <p className="text-sm text-[#374151] leading-relaxed mb-3">
+            ПопуткиUA — безкоштовний сервіс для людей, які щодня їздять між передмістям і Києвом. Наша головна фішка — <strong>щоденні приміські маршрути</strong>: дім → робота → дім. Водії та пасажири домовляються напряму в Telegram і ділять витрати на дорогу.
+          </p>
+          <div className="flex flex-col gap-2 text-sm text-[#374151]">
+            <div className="flex gap-2"><span>🏘</span><span><strong>Для кого:</strong> жителі передмість Києва — Ірпінь, Буча, Бровари, Бориспіль та інші.</span></div>
+            <div className="flex gap-2"><span>🔄</span><span><strong>Регулярні поїздки</strong> — основний фокус. Разові та міжміські теж підтримуються.</span></div>
+            <div className="flex gap-2"><span>💬</span><span><strong>Контакт через Telegram</strong> — без посередників, без комісій.</span></div>
+            <div className="flex gap-2"><span>🆓</span><span><strong>Безкоштовно</strong> — для водіїв і пасажирів.</span></div>
+          </div>
+        </div>
+
+        {/* Telegram-канал */}
+        <div className="rounded-2xl p-5 mb-8" style={{ background: "linear-gradient(135deg, #EBF2FC 0%, #F0F7FF 100%)", border: "1.5px solid #C7DCF7" }}>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl shrink-0">✈️</span>
+            <div>
+              <h2 className="text-base font-bold text-[#111827] mb-1">Telegram-канал @poputky_ua</h2>
+              <p className="text-sm text-[#374151] leading-relaxed mb-3">
+                Кожне нове оголошення з сайту автоматично публікується в нашому Telegram-каналі. Канал — це жива вітрина актуальних маршрутів: підпишіться і отримуйте нові оголошення одразу в Telegram, без необхідності заходити на сайт.
+              </p>
+              <p className="text-sm text-[#374151] leading-relaxed mb-3">
+                Сайт і канал доповнюють одне одного: <strong>сайт</strong> дає зручний пошук і фільтрацію за маршрутом, датою і роллю, <strong>канал</strong> — миттєві сповіщення про нові оголошення для підписників.
+              </p>
+              <a href="https://t.me/poputky_ua" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
+                style={{ background: "#229ED9" }}>
+                ✈️ Підписатися на канал
+              </a>
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-6 text-sm text-[#374151] leading-relaxed">
 
           <section>

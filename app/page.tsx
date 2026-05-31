@@ -81,10 +81,11 @@ export default async function Home({
 }) {
   const params = await searchParams
   let announcements: Awaited<ReturnType<typeof getAnnouncements>> = []
+  let loadError = false
   try {
     announcements = await getAnnouncements(params.from, params.to)
   } catch (_) {
-    // DB unavailable - show empty feed instead of server error
+    loadError = true
   }
 
   return (
@@ -93,6 +94,7 @@ export default async function Home({
         announcements={announcements}
         initialFrom={params.from ?? ""}
         initialTo={params.to ?? ""}
+        loadError={loadError}
       />
     </Suspense>
   )
